@@ -1,12 +1,10 @@
-// frontend/src/App.js
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ChecklistPage from './pages/ChecklistPage';
-import CetakPenerimaanPage from './pages/CetakPenerimaanPage'; // <-- IMPORT BARU
-import ArsipPage from './pages/ArsipPage';
+import CetakPenerimaanPage from './pages/CetakPenerimaanPage'; // Pastikan ini di-import
+import ArsipPage from './pages/ArsipPage'; // Pastikan ini di-import
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
@@ -23,11 +21,11 @@ function App() {
                     path="/dashboard"
                     element={<PrivateRoute><DashboardPage /></PrivateRoute>}
                 />
-                {/* 👇 PERBAIKI BARIS INI 👇 */}
                 <Route
-                    path="/checklist/:noUrut" 
+                    path="/checklist/:noUrut"
                     element={<PrivateRoute><ChecklistPage /></PrivateRoute>}
                 />
+                {/* RUTE YANG MEMPERBAIKI MASALAH ANDA ADA DI SINI */}
                 <Route
                     path="/penerimaan/:noUrut"
                     element={<PrivateRoute><CetakPenerimaanPage /></PrivateRoute>}
