@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import ReactDOM from 'react-dom/client';
-import CetakTahapF from './CetakTahapF';
 
 const tableStyles = `
     .record-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: 0.9rem; }
@@ -59,8 +57,6 @@ function FormTahapF() {
             if (response.data.success) {
                 alert(response.data.message);
                 
-                const dataToPrint = { ...recordData, ...tahapFData, nomorPHP: response.data.generatedNomor };
-
                 const printWindow = window.open(`/penerimaan/${recordData.noUrut}`, '_blank');
                 if (!printWindow) {
                     alert('Gagal membuka jendela cetak. Mohon izinkan pop-up untuk situs ini.');
@@ -170,4 +166,5 @@ function FormTahapF() {
 }
 
 export default FormTahapF;
+
 
