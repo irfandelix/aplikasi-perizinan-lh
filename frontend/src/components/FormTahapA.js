@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 
 function FormTahapA() {
     const navigate = useNavigate();
@@ -43,7 +43,7 @@ function FormTahapA() {
         e.preventDefault();
         try {
             // Frontend sekarang mengirim data dengan nama field yang benar
-            const response = await axios.post('http://localhost:3001/api/submit/tahap-a', formData);
+            const response = await api.post('/submit/tahap-a', formData);
             
             if (response.data.success) {
                 alert('Data berhasil disimpan ke MongoDB!');

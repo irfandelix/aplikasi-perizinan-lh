@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../api';
 
 const tableStyles = `
     .record-table {
@@ -57,7 +57,7 @@ function FormKantorLH() {
         setLoading(true);
         setError('');
         try {
-            const response = await axios.post(`http://localhost:3001/api/record/find`, { nomorChecklist: checklist });
+            const response = await api.post(`/record/find`, { nomorChecklist: checklist });
             setRecordData(response.data.data);
         } catch (err) {
             setRecordData(null);
@@ -105,7 +105,7 @@ function FormKantorLH() {
         }
 
         try {
-            const response = await axios.post(`http://localhost:3001/api/submit/${endpoint}`, { 
+            const response = await api.post(`/submit/${endpoint}`, { 
                 noUrut: recordData.noUrut,
                 ...finalPayload 
             });

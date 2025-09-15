@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { useNavigate } from 'react-router-dom';
 import clipboardIcon from '../clipboard.png'; // Pastikan path ini benar
 
@@ -12,7 +12,7 @@ function LoginPage() {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:3001/api/login', { username, password });
+            const response = await api.post('/login', { username, password });
             if (response.data.success) {
                 localStorage.setItem('userRole', response.data.role);
                 navigate('/dashboard');

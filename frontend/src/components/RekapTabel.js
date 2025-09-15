@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 
 // Sedikit CSS tambahan untuk tabel rekap
 const rekapTableStyles = `
@@ -83,7 +83,7 @@ function RekapTabel() {
         const fetchRekapData = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('http://localhost:3001/api/rekap/all');
+                const response = await api.get('/rekap/all');
                 setRekapData(response.data.data);
             } catch (err) {
                 setError('Gagal memuat data rekapitulasi.');

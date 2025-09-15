@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api from '../api';
 
 const tableStyles = `
     .record-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: 0.9rem; }
@@ -25,7 +25,7 @@ function FormTahapF() {
         setLoading(true);
         setError('');
         try {
-            const response = await axios.post(`http://localhost:3001/api/record/find`, { nomorChecklist: checklist });
+            const response = await api.post(`/record/find`, { nomorChecklist: checklist });
             setRecordData(response.data.data);
         } catch (err) {
             setRecordData(null);
@@ -49,14 +49,14 @@ function FormTahapF() {
             return;
         }
         try {
-            const response = await axios.post(`http://localhost:3001/api/submit/f`, { 
+            const response = await api.post(`/submit/f`, { 
                 noUrut: recordData.noUrut,
                 ...tahapFData 
             });
             
             if (response.data.success) {
                 alert(response.data.message);
-                
+                                
                 const printWindow = window.open(`/penerimaan/${recordData.noUrut}`, '_blank');
                 if (!printWindow) {
                     alert('Gagal membuka jendela cetak. Mohon izinkan pop-up untuk situs ini.');
@@ -166,5 +166,4 @@ function FormTahapF() {
 }
 
 export default FormTahapF;
-
 

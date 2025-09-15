@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import CetakChecklistA from '../components/CetakChecklistA';
 
 function ChecklistPage() {
@@ -25,7 +25,7 @@ function ChecklistPage() {
             }
             try {
                 // Meminta data ke backend MongoDB menggunakan noUrut dari URL
-                const response = await axios.get(`http://localhost:3001/api/record/${noUrut}`);
+                const response = await api.get(`/record/${noUrut}`);
                 setRecordData(response.data.data);
             } catch (error) {
                 console.error("Gagal mengambil data untuk checklist:", error);

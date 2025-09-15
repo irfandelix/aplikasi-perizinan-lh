@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 
 function ArsipPage() {
     const { noUrut } = useParams();
@@ -12,7 +12,7 @@ function ArsipPage() {
     useEffect(() => {
         const fetchRecordData = async () => {
             try {
-                const response = await axios.get(`http://localhost:3001/api/record/${noUrut}`);
+                const response = await api.get(`/record/${noUrut}`);
                 setRecordData(response.data.data);
 
                 if (response.data.data && response.data.data.checklistArsip) {
