@@ -174,7 +174,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
         let updateQuery = {};
         let generatedNomor = '';
         
-        if (tahap === 'tahap-b') {
+        if (tahap === 'b') {
             const { tanggalUjiBerkas } = req.body;
             const tglParts = getDateParts(tanggalUjiBerkas);
             generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/BA.HUA.${getStandardAbbreviation(existingData.jenisDokumen)}/17/${tglParts.year}`;
@@ -253,4 +253,5 @@ app.listen(PORT, () => {
     console.log(`Server API backend berjalan di http://localhost:${PORT}`);
     connectToDb();
 });
+
 
