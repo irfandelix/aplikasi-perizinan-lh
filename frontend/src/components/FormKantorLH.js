@@ -41,7 +41,7 @@ function FormKantorLH() {
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('B');
     
-    const [tahapBData, setTahapBData] = useState({ tanggalPenerbitanUa: '' });
+    const [tahapBData, setTahapBData] = useState({ tanggalUjiBerkas: '' });
     const [tahapCData, setTahapCData] = useState({ tanggalVerifikasi: '' });
     const [tahapDData, setTahapDData] = useState({ tanggalPemeriksaan: '' });
     const [tahapEData, setTahapEData] = useState({ tanggalRevisi: '', nomorRevisi: '1' });
@@ -113,7 +113,7 @@ function FormKantorLH() {
             
             fetchRecord(nomorChecklist);
 
-            if (endpoint === 'b') setTahapBData({ tanggalPenerbitanUa: '' });
+            if (endpoint === 'b') setTahapBData({ tanggalUjiBerkas: '' });
             if (endpoint === 'c') setTahapCData({ tanggalVerifikasi: '' });
             if (endpoint === 'd') setTahapDData({ tanggalPemeriksaan: '' });
             if (endpoint === 'e') setTahapEData({ tanggalRevisi: '', nomorRevisi: '1' });
@@ -134,7 +134,7 @@ function FormKantorLH() {
         if (!recordData) return null;
 
         if (activeTab === 'B') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('b', tahapBData); }}> <fieldset><legend>Tahap B</legend><div><label>Tanggal Penerbitan Uji Administrasi</label><input type="date" value={tahapBData.tanggalPenerbitanUa} onChange={(e) => setTahapBData({ tanggalPenerbitanUa: e.target.value })} required /></div></fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
+            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('b', tahapBData); }}> <fieldset><legend>Tahap B</legend><div><label>Tanggal Penerbitan Uji Administrasi</label><input type="date" value={tahapBData.tanggalUjiBerkas} onChange={(e) => setTahapBData({ tanggalUjiBerkas: e.target.value })} required /></div></fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
         }
         if (activeTab === 'C') {
             return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('c', tahapCData); }}> <fieldset><legend>Tahap C</legend><div><label>Tanggal Verifikasi Lapangan</label><input type="date" value={tahapCData.tanggalVerifikasi} onChange={(e) => setTahapCData({ tanggalVerifikasi: e.target.value })} required /></div></fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
@@ -266,4 +266,5 @@ function FormKantorLH() {
 }
 
 export default FormKantorLH;
+
 
