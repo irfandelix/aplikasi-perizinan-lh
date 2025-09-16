@@ -43,7 +43,6 @@ function LoginPage() {
                         type="text" 
                         value={username} 
                         onChange={(e) => setUsername(e.target.value)} 
-                        placeholder="Contoh: mpp" 
                         required 
                     />
 
@@ -53,7 +52,6 @@ function LoginPage() {
                         type="password" 
                         value={password} 
                         onChange={(e) => setPassword(e.target.value)} 
-                        placeholder="Contoh: mpp123" 
                         required 
                     />
 
@@ -67,5 +65,6 @@ function LoginPage() {
         </div>
     );
 }
+
 
 export default LoginPage;
