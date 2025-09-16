@@ -213,10 +213,10 @@ app.post('/api/submit/:tahap', async (req, res) => {
             updateQuery[targetFields.tgl] = tanggalRevisi;
         }
          else if (tahap === 'f') {
-            const { tanggalPenyerahanPerbaikan } = req.body;
-            const tglParts = getDateParts(tanggalPenyerahanPerbaikan);
+            const { tanggalPHP } = req.body;
+            const tglParts = getDateParts(tanggalPHP);
             generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/PHP.${getStandardAbbreviation(existingData.jenisDokumen)}/17/${tglParts.year}`;
-            updateQuery = { nomorPHP: generatedNomor, tanggalPHP: tanggalPenyerahanPerbaikan };
+            updateQuery = { nomorPHP: generatedNomor, tanggalPHP: tanggalPHP };
         }
         else if (tahap === 'g') {
             const { nomorIzinTerbit, jenisPerizinan, tanggalRisalah } = req.body;
@@ -253,5 +253,6 @@ app.listen(PORT, () => {
     console.log(`Server API backend berjalan di http://localhost:${PORT}`);
     connectToDb();
 });
+
 
 
