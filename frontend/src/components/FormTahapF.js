@@ -92,7 +92,7 @@ function FormTahapF() {
                 <fieldset>
                     <legend>Tahap F: Penerimaan Hasil Perbaikan Dokumen</legend>
                     <div>
-                        <label htmlFor="tanggalPHP">Tanggal Menyerahkan Berkas Perbaikan (Kolom AM)</label>
+                        <label htmlFor="tanggalPHP">Tanggal Menyerahkan Berkas Perbaikan</label>
                         <input id="tanggalPenyerahanPerbaikan" type="date" value={tahapFData.tanggalPenyerahanPerbaikan}
                             onChange={(e) => setTahapFData({ tanggalPHP: e.target.value })}
                             required />
@@ -166,5 +166,6 @@ function FormTahapF() {
 }
 
 export default FormTahapF;
+
 
 
