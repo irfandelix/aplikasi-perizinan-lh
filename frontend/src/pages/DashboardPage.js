@@ -15,14 +15,17 @@ function DashboardPage() {
         navigate('/');
     };
 
+     // --- RENDER UNTUK ROLE MPP DIPERBARUI DI SINI ---
     const renderMPPForms = () => (
         <div>
             <div className="tab-buttons">
                 <button onClick={() => setActiveTab('A')} className={activeTab === 'A' ? 'active' : ''}>Tahap A: Registrasi</button>
                 <button onClick={() => setActiveTab('F')} className={activeTab === 'F' ? 'active' : ''}>Tahap F: Penerimaan Perbaikan</button>
+                <button onClick={() => setActiveTab('Rekap')} className={activeTab === 'Rekap' ? 'active' : ''}>Rekap Data</button>
             </div>
             {activeTab === 'A' && <FormTahapA />}
             {activeTab === 'F' && <FormTahapF />}
+            {activeTab === 'Rekap' && <RekapTabel />}
         </div>
     );
 
@@ -49,5 +52,6 @@ function DashboardPage() {
         </div>
     );
 }
+
 
 export default DashboardPage;
