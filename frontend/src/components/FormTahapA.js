@@ -30,6 +30,9 @@ function FormTahapA() {
 
         if (name === 'teleponPemrakarsa' || name === 'teleponKonsultan') {
             let formattedValue = value;
+            // Hanya izinkan angka dan simbol '+'
+            formattedValue = formattedValue.replace(/[^0-9+]/g, '');
+            
             if (formattedValue.startsWith('0')) {
                 formattedValue = '+62' + formattedValue.substring(1);
             }
@@ -110,7 +113,7 @@ function FormTahapA() {
                     </div>
                     <div>
                         <label>No. Telp Pemrakarsa</label>
-                        <input name="teleponPemrakarsa" onChange={handleChange} value={formData.teleponPemrakarsa} required placeholder="+62" />
+                        <input name="teleponPemrakarsa" type="tel" onChange={handleChange} value={formData.teleponPemrakarsa} required placeholder="+62" />
                     </div>
                     <div>
                         <label>Nama Konsultan (Opsional)</label>
@@ -118,7 +121,7 @@ function FormTahapA() {
                     </div>
                     <div>
                         <label>No. Telp Konsultan</label>
-                        <input name="teleponKonsultan" onChange={handleChange} value={formData.teleponKonsultan} placeholder="+62" />
+                        <input name="teleponKonsultan" type="tel" onChange={handleChange} value={formData.teleponKonsultan} placeholder="+62" />
                     </div>
                 </div>
             </fieldset>
@@ -153,3 +156,4 @@ function FormTahapA() {
 }
 
 export default FormTahapA;
+
