@@ -4,6 +4,7 @@ import FormTahapA from '../components/FormTahapA';
 import FormKantorLH from '../components/FormKantorLH';
 import FormTahapF from '../components/FormTahapF';
 import RekapTabel from '../components/RekapTabel'; // <-- IMPORT BARU
+import CetakUlang from '../components/CetakUlang';
 
 function DashboardPage() {
     const navigate = useNavigate();
@@ -22,13 +23,19 @@ function DashboardPage() {
                 <button onClick={() => setActiveTab('A')} className={activeTab === 'A' ? 'active' : ''}>Tahap A: Registrasi</button>
                 <button onClick={() => setActiveTab('F')} className={activeTab === 'F' ? 'active' : ''}>Tahap F: Penerimaan Perbaikan</button>
                 <button onClick={() => setActiveTab('Rekap')} className={activeTab === 'Rekap' ? 'active' : ''}>Rekap Data</button>
+                {/* 1. Tombol tab baru ditambahkan di sini */}
+                <button onClick={() => setActiveTab('Cetak')} className={activeTab === 'Cetak' ? 'active' : ''}>Cetak Ulang</button>
             </div>
+            
+            {/* 2. Komponen ditampilkan secara kondisional */}
             {activeTab === 'A' && <FormTahapA />}
             {activeTab === 'F' && <FormTahapF />}
             {activeTab === 'Rekap' && <RekapTabel />}
+            {activeTab === 'Cetak' && <CetakUlang />}
+
+            {/* 3. Komponen yang ditampilkan permanen dihapus dari sini */}
         </div>
     );
-
     const renderDLHForms = () => (
        <div>
             <div className="tab-buttons">
