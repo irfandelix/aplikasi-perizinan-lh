@@ -4,29 +4,32 @@ import * as XLSX from 'xlsx'; // Import library excel yang baru diinstall
 
 // CSS untuk halaman ini diperbarui
 const arsipTableStyles = `
+    .arsip-table-wrapper {
+        overflow-x: auto; /* Memungkinkan tabel di-scroll ke samping */
+        margin-top: 1rem;
+    }
     .arsip-table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 1rem;
-        table-layout: fixed; /* Mencegah kolom melebar otomatis */
+        min-width: 1400px; /* Lebar minimum tabel ditambah agar header tidak terpotong */
     }
     .arsip-table th, .arsip-table td {
         border: 1px solid var(--border-color);
         padding: 0.75rem;
         text-align: left;
         vertical-align: top;
-        /* Terapkan wrap text di sini */
-        white-space: normal;
-        word-wrap: break-word;
     }
     .arsip-table thead {
         background-color: var(--light-gray);
     }
-    /* Atur lebar kolom agar lebih rapi */
-    .arsip-table th:nth-child(1), .arsip-table td:nth-child(1) { width: 10%; }
-    .arsip-table th:nth-child(2), .arsip-table td:nth-child(2) { width: 10%; }
-    .arsip-table th:nth-child(3), .arsip-table td:nth-child(3) { width: 10%; }
-    .arsip-table th:nth-child(5), .arsip-table td:nth-child(5) { width: 25%; } /* Kolom Uraian Berkas lebih lebar */
+    /* --- PERUBAHAN DI SINI --- */
+    .arsip-table th {
+        white-space: nowrap; /* Paksa teks di header agar tetap satu baris */
+    }
+    .arsip-table td {
+        white-space: normal; /* Biarkan teks di isi tabel bisa turun baris (wrap) */
+        word-wrap: break-word;
+    }
 `;
 
 function DaftarArsipPage() {
