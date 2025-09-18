@@ -5,7 +5,7 @@ import FormKantorLH from '../components/FormKantorLH';
 import FormTahapF from '../components/FormTahapF';
 import RekapTabel from '../components/RekapTabel';
 import CetakUlang from '../components/CetakUlang';
-import ArsipMenuPage from './ArsipMenuPage'; // <-- Import halaman menu baru
+import ArsipMenuPage from './MenuArsipPage'; // <-- Import halaman menu baru
 
 
 function DashboardPage() {
