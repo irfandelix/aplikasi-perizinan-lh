@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../api'; // Menggunakan jembatan API
 import * as XLSX from 'xlsx';
 
-// --- CSS DIPERBARUI TOTAL UNTUK FITUR FREEZE COLUMN ---
+// --- CSS tidak berubah ---
 const arsipTableStyles = `
     .arsip-table-wrapper {
         max-height: 70vh;
@@ -84,8 +84,14 @@ function DaftarArsipPage() {
                 api.get('/arsip/data'),
                 api.get('/arsip/kode')
             ]);
+            
+            // --- LOGIKA PENGURUTAN DITAMBAHKAN DI SINI ---
+            const sortedKodeList = kodeRes.data.data.sort((a, b) => 
+                a.kode.localeCompare(b.kode, undefined, { numeric: true, sensitivity: 'base' })
+            );
+
             setArsipList(arsipRes.data.data);
-            setKodeList(kodeRes.data.data);
+            setKodeList(sortedKodeList); // Simpan data yang sudah diurutkan
         } catch (error) {
             console.error("Gagal memuat data arsip:", error);
             alert("Gagal memuat data arsip.");
