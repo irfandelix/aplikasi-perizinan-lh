@@ -1,36 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api'; // Menggunakan jembatan API
-import * as XLSX from 'xlsx'; // Import library excel yang baru diinstall
+import * as XLSX from 'xlsx';
 
-// CSS untuk halaman ini diperbarui
+// --- CSS DIPERBARUI TOTAL UNTUK FITUR FREEZE COLUMN ---
 const arsipTableStyles = `
     .arsip-table-wrapper {
-        overflow-x: auto; /* Memungkinkan tabel di-scroll ke samping */
+        max-height: 70vh;
+        overflow: auto;
         margin-top: 1rem;
         border: 1px solid var(--border-color);
         border-radius: 8px;
+        position: relative;
     }
     .arsip-table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 1600px; /* Lebar minimum tabel DILEBARKAN agar header muat */
+        min-width: 1600px;
     }
     .arsip-table th, .arsip-table td {
         border: 1px solid var(--border-color);
         padding: 0.75rem;
         text-align: left;
         vertical-align: top;
+        white-space: normal;
+        word-wrap: break-word;
     }
     .arsip-table thead {
-        background-color: var(--light-gray);
+        background-color: #d1fae5; /* Warna hijau muda */
+        color: #065f46; /* Warna teks hijau tua */
     }
-    /* --- PERUBAHAN DI SINI --- */
     .arsip-table th {
-        white-space: nowrap; /* Paksa teks di header agar tetap satu baris */
+        position: sticky;
+        top: 0;
+        z-index: 10;
     }
-    .arsip-table td {
-        white-space: normal; /* Biarkan teks di isi tabel bisa turun baris (wrap) */
-        word-wrap: break-word;
+    .arsip-table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+
+    /* --- GAYA UNTUK FREEZE COLUMN --- */
+    .arsip-table .freeze {
+        position: sticky;
+        background-color: white;
+    }
+    .arsip-table tbody tr:nth-child(even) .freeze {
+        background-color: #f8f9fa;
+    }
+    .arsip-table th.freeze {
+        background-color: #d1fae5;
+        z-index: 20;
+    }
+    
+    .arsip-table .col-1 { left: 0px; min-width: 150px; width: 150px; }
+    .arsip-table .col-2 { left: 150px; min-width: 150px; width: 150px; }
+    .arsip-table .col-3 { 
+        left: 300px; 
+        min-width: 150px; 
+        width: 150px;
+        border-right: 2px solid #adb5bd; /* Garis pembatas */
     }
 `;
 
@@ -103,9 +130,7 @@ function DaftarArsipPage() {
         }
     };
 
-    // --- FUNGSI BARU UNTUK DOWNLOAD EXCEL ---
     const handleDownloadExcel = () => {
-        // 1. Format data agar sesuai dengan header yang diinginkan
         const dataToExport = arsipList.map(item => ({
             "Nomor Berkas": item.nomorBerkas,
             "Nomor Item": item.nomorItem,
@@ -116,15 +141,9 @@ function DaftarArsipPage() {
             "Jumlah": `${item.jumlah} ${item.jumlahUnit}`,
             "Keterangan": item.keterangan
         }));
-
-        // 2. Buat worksheet dari data yang sudah diformat
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-        
-        // 3. Buat workbook baru dan tambahkan worksheet ke dalamnya
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Data Arsip Dinamis");
-
-        // 4. Memicu download file Excel
         XLSX.writeFile(workbook, "DaftarArsipDinamis.xlsx");
     };
 
@@ -172,13 +191,13 @@ function DaftarArsipPage() {
 
         if (activeTab === 'Rekap') {
             return (
-                <div className="rekap-table-wrapper" style={{maxHeight: 'none', marginTop:'1rem'}}>
+                <div className="arsip-table-wrapper">
                     <table className="arsip-table">
                         <thead>
                             <tr>
-                                <th>Nomor Berkas</th>
-                                <th>Nomor Item</th>
-                                <th>Kode Klarifikasi</th>
+                                <th className="freeze col-1">Nomor Berkas</th>
+                                <th className="freeze col-2">Nomor Item</th>
+                                <th className="freeze col-3">Kode Klarifikasi</th>
                                 <th>Uraian Kode</th>
                                 <th>Uraian Informasi Berkas</th>
                                 <th>Tanggal</th>
@@ -189,9 +208,9 @@ function DaftarArsipPage() {
                         <tbody>
                             {arsipList.map(item => (
                                 <tr key={item._id}>
-                                    <td>{item.nomorBerkas}</td>
-                                    <td>{item.nomorItem}</td>
-                                    <td>{item.kodeKlarifikasi}</td>
+                                    <td className="freeze col-1">{item.nomorBerkas}</td>
+                                    <td className="freeze col-2">{item.nomorItem}</td>
+                                    <td className="freeze col-3">{item.kodeKlarifikasi}</td>
                                     <td>{item.uraianKodeKlarifikasi}</td>
                                     <td>{item.uraianInformasiBerkas}</td>
                                     <td>{item.tanggal}</td>
@@ -215,7 +234,6 @@ function DaftarArsipPage() {
             <div className="tab-buttons">
                 <button onClick={() => setActiveTab('Rekap')} className={activeTab === 'Rekap' ? 'active' : ''}>Rekap Arsip</button>
                 <button onClick={() => setActiveTab('Tambah')} className={activeTab === 'Tambah' ? 'active' : ''}>Tambah Arsip</button>
-                {/* --- TOMBOL BARU UNTUK DOWNLOAD EXCEL --- */}
                 <button onClick={handleDownloadExcel} className="secondary" style={{marginLeft: 'auto'}}>
                     Unduh Excel
                 </button>
@@ -229,4 +247,3 @@ function DaftarArsipPage() {
 }
 
 export default DaftarArsipPage;
-
