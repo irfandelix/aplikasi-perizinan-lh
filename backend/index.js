@@ -253,20 +253,18 @@ app.post('/api/submit/:tahap', async (req, res) => {
     }
 });
 
-// --- ENDPOINT BARU UNTUK FITUR ARSIP DINAMIS ---
+// --- ENDPOINT UNTUK FITUR ARSIP DINAMIS ---
 
+// Mengambil semua data Kode Klarifikasi
 app.get('/api/arsip/kode', async (req, res) => {
     try {
         const db = await connectToDb();
         const allKodesRaw = await db.collection(COLLECTION_KODE).find({}).toArray();
-        
-        // --- LOGIKA PENERJEMAH DITAMBAHKAN DI SINI ---
         const allKodes = allKodesRaw.map(item => ({
             _id: item._id,
-            kode: item["KLASIFIKASI"], // Mengambil data dari kolom "KLASIFIKASI"
-            uraian: item["URUSAN/FUNGSI"] // Mengambil data dari kolom "URUSAN/FUNGSI"
+            kode: item["KLASIFIKASI"],
+            uraian: item["URUSAN/FUNGSI"]
         }));
-
         res.status(200).json({ success: true, data: allKodes });
     } catch (error) {
         console.error("Error di /api/arsip/kode:", error);
@@ -278,7 +276,10 @@ app.get('/api/arsip/kode', async (req, res) => {
 app.get('/api/arsip/data', async (req, res) => {
     try {
         const db = await connectToDb();
-        const allArsip = await db.collection(COLLECTION_ARSIP).find({}).sort({ tanggal: -1 }).toArray();
+        // --- LOGIKA PENGURUTAN DIPERBARUI DI SINI ---
+        const allArsip = await db.collection(COLLECTION_ARSIP).find({})
+            .sort({ kodeKlarifikasi: 1, nomorBerkas: 1 }) // Urutkan berdasarkan Kode, lalu Nomor Berkas
+            .toArray();
         res.status(200).json({ success: true, data: allArsip });
     } catch (error) {
         console.error("Error di /api/arsip/data:", error);
@@ -291,9 +292,7 @@ app.post('/api/arsip/data', async (req, res) => {
     try {
         const db = await connectToDb();
         const newArsipData = req.body;
-        
         newArsipData.createdAt = new Date();
-
         await db.collection(COLLECTION_ARSIP).insertOne(newArsipData);
         res.status(201).json({ success: true, message: 'Data arsip berhasil disimpan!' });
     } catch (error) {
