@@ -7,11 +7,13 @@ const arsipTableStyles = `
     .arsip-table-wrapper {
         overflow-x: auto; /* Memungkinkan tabel di-scroll ke samping */
         margin-top: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
     }
     .arsip-table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 1400px; /* Lebar minimum tabel ditambah agar header tidak terpotong */
+        min-width: 1600px; /* Lebar minimum tabel DILEBARKAN agar header muat */
     }
     .arsip-table th, .arsip-table td {
         border: 1px solid var(--border-color);
