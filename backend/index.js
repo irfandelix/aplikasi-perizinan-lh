@@ -255,45 +255,49 @@ app.post('/api/submit/:tahap', async (req, res) => {
 
 // --- ENDPOINT BARU UNTUK FITUR ARSIP DINAMIS ---
 
-// Endpoint untuk mengambil semua data Kode Klarifikasi
+// Mengambil semua data Kode Klarifikasi
 app.get('/api/arsip/kode', async (req, res) => {
     try {
         const db = await connectToDb();
         const allKodes = await db.collection(COLLECTION_KODE).find({}).toArray();
         res.status(200).json({ success: true, data: allKodes });
     } catch (error) {
+        console.error("Error di /api/arsip/kode:", error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data kode klarifikasi.' });
     }
 });
 
-// Endpoint untuk mengambil semua data dari koleksi arsip dinamis
+// Mengambil semua data dari koleksi arsip
 app.get('/api/arsip/data', async (req, res) => {
     try {
         const db = await connectToDb();
         const allArsip = await db.collection(COLLECTION_ARSIP).find({}).sort({ tanggal: -1 }).toArray();
         res.status(200).json({ success: true, data: allArsip });
     } catch (error) {
+        console.error("Error di /api/arsip/data:", error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data arsip.' });
     }
 });
 
-// Endpoint untuk menyimpan data arsip dinamis baru
+// Menyimpan data arsip baru
 app.post('/api/arsip/data', async (req, res) => {
     try {
         const db = await connectToDb();
         const newArsipData = req.body;
+        
         newArsipData.createdAt = new Date();
+
         await db.collection(COLLECTION_ARSIP).insertOne(newArsipData);
         res.status(201).json({ success: true, message: 'Data arsip berhasil disimpan!' });
     } catch (error) {
+        console.error("Error saat menyimpan data arsip:", error);
         res.status(500).json({ success: false, message: 'Gagal menyimpan data arsip.' });
     }
 });
 
+// Server listener
 app.listen(PORT, () => {
     console.log(`Server API backend berjalan di http://localhost:${PORT}`);
     connectToDb();
 });
-
-
 
