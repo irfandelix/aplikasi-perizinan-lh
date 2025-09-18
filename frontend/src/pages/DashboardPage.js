@@ -3,13 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import FormTahapA from '../components/FormTahapA';
 import FormKantorLH from '../components/FormKantorLH';
 import FormTahapF from '../components/FormTahapF';
-import RekapTabel from '../components/RekapTabel'; // <-- IMPORT BARU
+import RekapTabel from '../components/RekapTabel'; 
 import CetakUlang from '../components/CetakUlang';
+import DaftarArsipPage from './DaftarArsipPage'; // Jalur import diperbaiki
 
 function DashboardPage() {
     const navigate = useNavigate();
     const userRole = localStorage.getItem('userRole');
-    const [activeTab, setActiveTab] = useState(userRole === 'MPP' ? 'A' : 'Update');
+
+    const getDefaultTab = () => {
+        if (userRole === 'MPP') return 'A';
+        if (userRole === 'Kantor LH') return 'Update';
+        return 'Daftar Arsip'; // Default untuk role lain seperti Arsip
+    };
+
+    const [activeTab, setActiveTab] = useState(getDefaultTab());
 
     const handleLogout = () => {
         localStorage.removeItem('userRole');
@@ -56,6 +64,28 @@ function DashboardPage() {
 
             {userRole === 'MPP' && renderMPPForms()}
             {userRole === 'Kantor LH' && renderDLHForms()}
+        </div>
+    );
+
+    // --- RENDER UNTUK ROLE ARSIP --- 
+    const renderArsipDashboard = () => (
+        <div>
+            {/* Role Arsip sekarang melihat halaman daftar arsip dinamis */}
+            <DaftarArsipPage />
+        </div>
+    );
+
+    return (
+        <div className="container">
+            <div className="dashboard-header">
+                <h1>Dashboard {userRole}</h1>
+                <button onClick={handleLogout} className="danger">Logout</button>
+            </div>
+            
+            {/* Logika untuk menampilkan dashboard yang sesuai */}
+            {userRole === 'MPP' && renderMPPForms()}
+            {userRole === 'Kantor LH' && renderDLHForms()}
+            {userRole === 'Arsip' && renderArsipDashboard()}
         </div>
     );
 }
