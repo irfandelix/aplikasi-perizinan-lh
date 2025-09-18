@@ -14,6 +14,8 @@ const PORT = process.env.PORT || 3001;
 const MONGO_URI = process.env.MONGO_URI;
 const DB_NAME = 'db_perizinan_lh';
 const COLLECTION_NAME = 'dokumen';
+const COLLECTION_ARSIP = 'arsip';
+const COLLECTION_KODE = 'kode_klarifikasi';
 
 let db;
 
@@ -69,9 +71,11 @@ async function getGlobalMaxSequentialNumber() {
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     if (username === process.env.MPP_USER && password === process.env.MPP_PASS) {
-        res.json({ success: true, role: 'MPP', message: 'Login berhasil' });
+        res.json({ success: true, role: 'MPP', message: 'Login berhasil sebagai Petugas MPP' });
     } else if (username === process.env.DLH_USER && password === process.env.DLH_PASS) {
-        res.json({ success: true, role: 'Kantor LH', message: 'Login berhasil' });
+        res.json({ success: true, role: 'Kantor LH', message: 'Login berhasil sebagai Kantor LH' });
+        } else if (username === process.env.ARSIP_USER && password === process.env.ARSIP_PASS) {
+        res.json({ success: true, role: 'Arsip', message: 'Login berhasil sebagai Arsip' });
     } else {
         res.status(401).json({ success: false, message: 'Username atau password salah' });
     }
@@ -246,6 +250,43 @@ app.post('/api/submit/:tahap', async (req, res) => {
     } catch (error) {
         console.error(`Error di Tahap ${tahap.toUpperCase()}:`, error);
         res.status(500).json({ success: false, message: 'Terjadi kesalahan di server.' });
+    }
+});
+
+// --- ENDPOINT BARU UNTUK FITUR ARSIP DINAMIS ---
+
+// Endpoint untuk mengambil semua data Kode Klarifikasi
+app.get('/api/arsip/kode', async (req, res) => {
+    try {
+        const db = await connectToDb();
+        const allKodes = await db.collection(COLLECTION_KODE).find({}).toArray();
+        res.status(200).json({ success: true, data: allKodes });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Gagal mengambil data kode klarifikasi.' });
+    }
+});
+
+// Endpoint untuk mengambil semua data dari koleksi arsip dinamis
+app.get('/api/arsip/data', async (req, res) => {
+    try {
+        const db = await connectToDb();
+        const allArsip = await db.collection(COLLECTION_ARSIP).find({}).sort({ tanggal: -1 }).toArray();
+        res.status(200).json({ success: true, data: allArsip });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Gagal mengambil data arsip.' });
+    }
+});
+
+// Endpoint untuk menyimpan data arsip dinamis baru
+app.post('/api/arsip/data', async (req, res) => {
+    try {
+        const db = await connectToDb();
+        const newArsipData = req.body;
+        newArsipData.createdAt = new Date();
+        await db.collection(COLLECTION_ARSIP).insertOne(newArsipData);
+        res.status(201).json({ success: true, message: 'Data arsip berhasil disimpan!' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Gagal menyimpan data arsip.' });
     }
 });
 

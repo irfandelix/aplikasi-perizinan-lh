@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage';
 import ChecklistPage from './pages/ChecklistPage';
 import CetakPenerimaanPage from './pages/CetakPenerimaanPage'; // Pastikan ini di-import
 import ArsipPage from './pages/ArsipPage'; // Pastikan ini di-import
+import DaftarArsipPage from './pages/DaftarArsipPage'; // Pastikan ini di-import
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
@@ -33,6 +34,11 @@ function App() {
                 <Route
                     path="/arsip/:noUrut"
                     element={<PrivateRoute><ArsipPage /></PrivateRoute>}
+                />
+                {/* Rute baru untuk halaman arsip dinamis */}
+                <Route
+                    path="/daftar-arsip"
+                    element={<PrivateRoute><DaftarArsipPage /></PrivateRoute>}
                 />
             </Routes>
         </Router>
