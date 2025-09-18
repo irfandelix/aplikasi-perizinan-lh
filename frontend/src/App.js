@@ -5,7 +5,9 @@ import DashboardPage from './pages/DashboardPage';
 import ChecklistPage from './pages/ChecklistPage';
 import CetakPenerimaanPage from './pages/CetakPenerimaanPage'; // Pastikan ini di-import
 import ArsipPage from './pages/ArsipPage'; // Pastikan ini di-import
-import DaftarArsipPage from './pages/DaftarArsipPage'; // Pastikan ini di-import
+import DaftarArsipPage from './pages/DaftarArsipPage';
+import NotaDinasPage from './pages/NotaDinasPage';
+import SuratKeluarPage from './pages/SuratKeluarPage';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
@@ -36,10 +38,19 @@ function App() {
                     element={<PrivateRoute><ArsipPage /></PrivateRoute>}
                 />
                 {/* Rute baru untuk halaman arsip dinamis */}
-                <Route
-                    path="/daftar-arsip"
-                    element={<PrivateRoute><DaftarArsipPage /></PrivateRoute>}
+                 {/* --- RUTE BARU UNTUK SETIAP MENU ARSIP --- */}
+                <Route 
+                    path="/daftar-arsip" 
+                    element={<PrivateRoute><DaftarArsipPage /></PrivateRoute>} 
                 />
+                <Route 
+                    path="/nota-dinas" 
+                    element={<PrivateRoute><NotaDinasPage /></PrivateRoute>} 
+                />
+                <Route 
+                    path="/surat-keluar" 
+                    element={<PrivateRoute><SuratKeluarPage /></PrivateRoute>} 
+                ></Route>
             </Routes>
         </Router>
     );
