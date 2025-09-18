@@ -36,7 +36,7 @@ function ArsipMenuPage() {
             <h3>Menu Utama Arsip</h3>
             <div className="arsip-menu-container">
                 <button 
-                    onClick={() => navigate('/DaftarArsipPage')} 
+                    onClick={() => navigate('/daftar-arsip')} 
                     className="arsip-menu-button"
                 >
                     1. Arsip Dinamis Aktif
