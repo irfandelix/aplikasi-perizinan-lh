@@ -5,18 +5,15 @@ import FormKantorLH from '../components/FormKantorLH';
 import FormTahapF from '../components/FormTahapF';
 import RekapTabel from '../components/RekapTabel';
 import CetakUlang from '../components/CetakUlang';
-import DaftarArsipPage from './DaftarArsipPage'; // Jalur import diperbaiki
+import ArsipMenuPage from './ArsipMenuPage'; // <-- Import halaman menu baru
+
 
 function DashboardPage() {
     const navigate = useNavigate();
     const userRole = localStorage.getItem('userRole');
     
-    const getDefaultTab = () => {
-        if (userRole === 'MPP') return 'A';
-        if (userRole === 'Kantor LH') return 'Update';
-        return 'Daftar Arsip'; // Default untuk role lain seperti Arsip
-    };
-    const [activeTab, setActiveTab] = useState(getDefaultTab());
+ // State default untuk tab aktif disesuaikan
+    const [activeTab, setActiveTab] = useState(userRole === 'MPP' ? 'A' : 'Update');
 
     const handleLogout = () => {
         localStorage.removeItem('userRole');
@@ -49,12 +46,10 @@ function DashboardPage() {
         </div>
     );
 
-    // --- RENDER UNTUK ROLE ARSIP ---
+        // --- RENDER UNTUK ROLE ARSIP DIPERBARUI TOTAL ---
     const renderArsipDashboard = () => (
-        <div>
-            {/* Role Arsip sekarang melihat halaman daftar arsip dinamis */}
-            <DaftarArsipPage />
-        </div>
+        // Role Arsip sekarang melihat Halaman Menu, bukan tab
+        <ArsipMenuPage />
     );
 
     return (
