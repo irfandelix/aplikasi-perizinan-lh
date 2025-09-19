@@ -128,7 +128,7 @@ function DaftarArsipPage() {
         }
     };
 
-    // --- FUNGSI DOWNLOAD EXCEL DIPERBARUI TOTAL ---
+ // --- FUNGSI DOWNLOAD EXCEL DIPERBARUI TOTAL DENGAN HEADER KUSTOM ---
     const handleDownloadExcel = () => {
         const formatDateForExcel = (dateString) => {
             if (!dateString) return '';
@@ -140,20 +140,18 @@ function DaftarArsipPage() {
             return `${day}-${month}-${year}`;
         };
 
-        // 1. Definisikan header secara manual
-        const headers = [
-            "Nomor Berkas", "Nomor Item", "Kode Klarifikasi", "Uraian Informasi Berkas", 
-            "Tanggal", "Jumlah", "Keterangan" // Header Keterangan yang akan digabung
-        ];
-        // Tambahkan sel kosong untuk mengakomodasi sub-header
-        for (let i = 0; i < 4; i++) headers.push("");
+        // 1. Siapkan data header kustom
+        const title = "DAFTAR BERKAS ARSIP DINAMIS AKTIF TAHUN 2025";
+        const unitPengolah = "Unit Pengolah : Bidang Perencanaan, Pengaduan, dan Peningkatan Kapasitas Lingkungan Hidup";
+        
+        // 2. Siapkan header tabel utama dan sub-header
+        const mainHeaders = ["Nomor Berkas", "Nomor Item", "Kode Klarifikasi", "Uraian Informasi Berkas", "Tanggal", "Jumlah", "Keterangan"];
+        // Tambahkan sel kosong untuk mengakomodasi sub-header Keterangan
+        for (let i = 0; i < 4; i++) mainHeaders.push(null);
+        
+        const subHeaders = [null, null, null, null, null, null, "Biasa", "Terbatas", "Rahasia", "Segera", "Penting"];
 
-        const subHeaders = [
-            "", "", "", "", "", "", // Sel kosong untuk kolom utama
-            "Biasa", "Terbatas", "Rahasia", "Segera", "Penting" // Sub-header Keterangan
-        ];
-
-        // 2. Map data agar sesuai dengan struktur baru
+        // 3. Map data arsip ke dalam format baris untuk Excel
         const dataRows = arsipList.map(item => {
             const row = [
                 item.nomorBerkas,
@@ -163,35 +161,49 @@ function DaftarArsipPage() {
                 formatDateForExcel(item.tanggal),
                 `${item.jumlah} ${item.jumlahUnit}`
             ];
-
             const keteranganOptions = ["Biasa", "Terbatas", "Rahasia", "Segera", "Penting"];
             keteranganOptions.forEach(opt => {
-                row.push(item.keterangan === opt ? item.keterangan : "");
+                row.push(item.keterangan === opt ? '✓' : ''); // Menggunakan tanda centang
             });
             return row;
         });
 
-        // 3. Gabungkan header dan data
-        const finalData = [headers, subHeaders, ...dataRows];
+        // 4. Gabungkan semua bagian menjadi satu array besar
+        const finalData = [
+            [title], // Baris 1
+            [], // Baris 2 (kosong)
+            [unitPengolah], // Baris 3
+            [], // Baris 4 (kosong)
+            mainHeaders, // Baris 5 (Header utama tabel)
+            subHeaders, // Baris 6 (Sub-header tabel)
+            ...dataRows // Baris 7 dan seterusnya
+        ];
 
-        // 4. Buat worksheet dari array
+        // 5. Buat worksheet dari struktur data yang baru
         const worksheet = XLSX.utils.aoa_to_sheet(finalData);
 
-        // 5. Definisikan area merge untuk header "Keterangan"
-        // s = start, e = end, r = row, c = column (dimulai dari 0)
+        // 6. Definisikan area merge untuk semua header yang digabungkan
         worksheet["!merges"] = [
-            { s: { r: 0, c: 6 }, e: { r: 0, c: 10 } } // Gabungkan sel G1 sampai K1
+            // Merge untuk judul utama (A1 sampai K1)
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 10 } },
+            // Merge untuk header tabel
+            { s: { r: 4, c: 0 }, e: { r: 5, c: 0 } }, // Nomor Berkas
+            { s: { r: 4, c: 1 }, e: { r: 5, c: 1 } }, // Nomor Item
+            { s: { r: 4, c: 2 }, e: { r: 5, c: 2 } }, // Kode Klarifikasi
+            { s: { r: 4, c: 3 }, e: { r: 5, c: 3 } }, // Uraian Informasi Berkas
+            { s: { r: 4, c: 4 }, e: { r: 5, c: 4 } }, // Tanggal
+            { s: { r: 4, c: 5 }, e: { r: 5, c: 5 } }, // Jumlah
+            { s: { r: 4, c: 6 }, e: { r: 4, c: 10 } } // Keterangan
         ];
         
-        // 6. Atur lebar kolom
+        // 7. Atur lebar kolom
         const colWidths = [
             { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 50 }, { wch: 15 }, { wch: 15 },
-            // Lebar untuk setiap kolom Keterangan
             { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }
         ];
         worksheet['!cols'] = colWidths;
         
-        // 7. Buat workbook dan picu download
+        // 8. Buat workbook dan picu download
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Data Arsip Dinamis");
         XLSX.writeFile(workbook, "DaftarArsipDinamis.xlsx");
