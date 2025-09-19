@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api'; // Menggunakan jembatan API
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx'; // Import library excel yang baru diinstall
 
-// --- CSS tidak berubah ---
-const arsipTableStyles = `
+// CSS untuk halaman ini diperbarui
+const arsipPageStyles = `
     .arsip-table-wrapper {
-        max-height: 70vh;
-        overflow: auto;
+        overflow-x: auto;
         margin-top: 1rem;
         border: 1px solid var(--border-color);
         border-radius: 8px;
-        position: relative;
     }
     .arsip-table {
         width: 100%;
@@ -22,42 +20,38 @@ const arsipTableStyles = `
         padding: 0.75rem;
         text-align: left;
         vertical-align: top;
+    }
+    .arsip-table thead {
+        background-color: #d1fae5;
+        color: #064e3b;
+    }
+    .arsip-table th {
+        white-space: nowrap;
+    }
+    .arsip-table td {
         white-space: normal;
         word-wrap: break-word;
     }
-    .arsip-table thead {
-        background-color: #d1fae5; /* Warna hijau muda */
-        color: #065f46; /* Warna teks hijau tua */
+    /* --- STYLE BARU UNTUK RADIO BUTTON --- */
+    .radio-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        align-items: center;
+        border: 1px solid var(--border-color);
+        padding: 0.75rem;
+        border-radius: 4px;
     }
-    .arsip-table th {
-        position: sticky;
-        top: 0;
-        z-index: 10;
+    .radio-group label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        margin: 0;
     }
-    .arsip-table tbody tr:nth-child(even) {
-        background-color: #f8f9fa;
-    }
-
-    /* --- GAYA UNTUK FREEZE COLUMN --- */
-    .arsip-table .freeze {
-        position: sticky;
-        background-color: white;
-    }
-    .arsip-table tbody tr:nth-child(even) .freeze {
-        background-color: #f8f9fa;
-    }
-    .arsip-table th.freeze {
-        background-color: #d1fae5;
-        z-index: 20;
-    }
-    
-    .arsip-table .col-1 { left: 0px; min-width: 150px; width: 150px; }
-    .arsip-table .col-2 { left: 150px; min-width: 150px; width: 150px; }
-    .arsip-table .col-3 { 
-        left: 300px; 
-        min-width: 150px; 
-        width: 150px;
-        border-right: 2px solid #adb5bd; /* Garis pembatas */
+    .radio-group input[type="radio"] {
+        width: auto;
+        margin: 0;
     }
 `;
 
@@ -85,13 +79,12 @@ function DaftarArsipPage() {
                 api.get('/arsip/kode')
             ]);
             
-            // --- LOGIKA PENGURUTAN DITAMBAHKAN DI SINI ---
             const sortedKodeList = kodeRes.data.data.sort((a, b) => 
                 a.kode.localeCompare(b.kode, undefined, { numeric: true, sensitivity: 'base' })
             );
 
             setArsipList(arsipRes.data.data);
-            setKodeList(sortedKodeList); // Simpan data yang sudah diurutkan
+            setKodeList(sortedKodeList);
         } catch (error) {
             console.error("Gagal memuat data arsip:", error);
             alert("Gagal memuat data arsip.");
@@ -137,17 +130,38 @@ function DaftarArsipPage() {
     };
 
     const handleDownloadExcel = () => {
-        const dataToExport = arsipList.map(item => ({
-            "Nomor Berkas": item.nomorBerkas,
-            "Nomor Item": item.nomorItem,
-            "Kode Klarifikasi": item.kodeKlarifikasi,
-            "Uraian Kode Klarifikasi": item.uraianKodeKlarifikasi,
-            "Uraian Informasi Berkas": item.uraianInformasiBerkas,
-            "Tanggal": item.tanggal,
-            "Jumlah": `${item.jumlah} ${item.jumlahUnit}`,
-            "Keterangan": item.keterangan
-        }));
+        const formatDateForExcel = (dateString) => {
+            if (!dateString) return '';
+            const parts = dateString.split('-');
+            if (parts.length !== 3) return dateString;
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        };
+
+        // --- NAMA HEADER BARU UNTUK KETERANGAN ---
+        const keteranganHeader = "Keterangan (Biasa | Terbatas | Rahasia | Segera | Penting)";
+
+        // 1. Format data agar sesuai dengan 7 kolom yang Anda inginkan
+        const dataToExport = arsipList.map(item => {
+            const newItem = {};
+            newItem["Nomor Berkas"] = item.nomorBerkas;
+            newItem["Nomor Item"] = item.nomorItem;
+            newItem["Kode Klarifikasi"] = item.kodeKlarifikasi;
+            newItem["Uraian Informasi Berkas"] = item.uraianInformasiBerkas;
+            newItem["Tanggal"] = formatDateForExcel(item.tanggal);
+            newItem["Jumlah"] = item.jumlah;
+            newItem[keteranganHeader] = item.keterangan; // Gunakan header baru
+            return newItem;
+        });
+        
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        
+        const colWidths = [
+            { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 50 },
+            { wch: 15 }, { wch: 10 }, 
+            { wch: 60 } // Lebarkan kolom Keterangan agar header-nya muat
+        ];
+        worksheet['!cols'] = colWidths;
+        
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Data Arsip Dinamis");
         XLSX.writeFile(workbook, "DaftarArsipDinamis.xlsx");
@@ -160,6 +174,7 @@ function DaftarArsipPage() {
         }
 
         if (activeTab === 'Tambah') {
+            const keteranganOptions = ["Biasa", "Terbatas", "Rahasia", "Segera", "Penting"];
             return (
                 <form onSubmit={handleSubmit}>
                     <fieldset>
@@ -181,13 +196,24 @@ function DaftarArsipPage() {
                                     <option>Lembar</option>
                                 </select>
                             </div>
-                            <select name="keterangan" value={newEntry.keterangan} onChange={handleChange} className="form-grid-full">
-                                <option>Biasa</option>
-                                <option>Terbatas</option>
-                                <option>Rahasia</option>
-                                <option>Segera</option>
-                                <option>Penting</option>
-                            </select>
+                            
+                            <div className="form-grid-full">
+                                <label style={{marginBottom: '0.5rem', display: 'block'}}>Keterangan</label>
+                                <div className="radio-group">
+                                    {keteranganOptions.map(option => (
+                                        <label key={option}>
+                                            <input
+                                                type="radio"
+                                                name="keterangan"
+                                                value={option}
+                                                checked={newEntry.keterangan === option}
+                                                onChange={handleChange}
+                                            />
+                                            {option}
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                         <button type="submit" className="primary" style={{marginTop: '1rem'}}>Tambah ke Arsip</button>
                     </fieldset>
@@ -201,9 +227,9 @@ function DaftarArsipPage() {
                     <table className="arsip-table">
                         <thead>
                             <tr>
-                                <th className="freeze col-1">Nomor Berkas</th>
-                                <th className="freeze col-2">Nomor Item</th>
-                                <th className="freeze col-3">Kode Klarifikasi</th>
+                                <th>Nomor Berkas</th>
+                                <th>Nomor Item</th>
+                                <th>Kode Klarifikasi</th>
                                 <th>Uraian Kode</th>
                                 <th>Uraian Informasi Berkas</th>
                                 <th>Tanggal</th>
@@ -214,9 +240,9 @@ function DaftarArsipPage() {
                         <tbody>
                             {arsipList.map(item => (
                                 <tr key={item._id}>
-                                    <td className="freeze col-1">{item.nomorBerkas}</td>
-                                    <td className="freeze col-2">{item.nomorItem}</td>
-                                    <td className="freeze col-3">{item.kodeKlarifikasi}</td>
+                                    <td>{item.nomorBerkas}</td>
+                                    <td>{item.nomorItem}</td>
+                                    <td>{item.kodeKlarifikasi}</td>
                                     <td>{item.uraianKodeKlarifikasi}</td>
                                     <td>{item.uraianInformasiBerkas}</td>
                                     <td>{item.tanggal}</td>
@@ -234,7 +260,7 @@ function DaftarArsipPage() {
 
     return (
         <div>
-            <style>{arsipTableStyles}</style>
+            <style>{arsipPageStyles}</style>
             <h3>Daftar Berkas Arsip Dinamis Aktif</h3>
             
             <div className="tab-buttons">
@@ -253,3 +279,4 @@ function DaftarArsipPage() {
 }
 
 export default DaftarArsipPage;
+
