@@ -10,7 +10,8 @@ import DaftarArsipPage from './DaftarArsipPage';
 import NotaDinasPage from './NotaDinasPage';
 import SuratKeluarPage from './SuratKeluarPage';
 
-// Gaya baru untuk tombol sekunder saat di-hover
+// --- GAYA BARU DITAMBAHKAN DI SINI ---
+// Gaya ini akan mengubah warna tombol dengan class "secondary" saat disentuh mouse
 const dashboardStyles = `
     .secondary:hover {
         background-color: #1D6F42; /* Warna hijau Excel */
@@ -65,7 +66,7 @@ function DashboardPage() {
         </div>
     );
 
-    // --- RENDER UNTUK ROLE ARSIP DIPERBARUI TOTAL MENJADI TAB ---
+    // Tampilan untuk role Arsip
     const renderArsipDashboard = () => (
         <div>
             <div className="tab-buttons">
@@ -84,6 +85,9 @@ function DashboardPage() {
 
     return (
         <div className="container">
+            {/* Menambahkan gaya kustom ke halaman ini */}
+            <style>{dashboardStyles}</style>
+            
             <div className="dashboard-header">
                 <h1>Dashboard {userRole}</h1>
                 <button onClick={handleLogout} className="danger">Logout</button>
