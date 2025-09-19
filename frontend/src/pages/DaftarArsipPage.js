@@ -137,10 +137,10 @@ function DaftarArsipPage() {
             return `${parts[2]}-${parts[1]}-${parts[0]}`;
         };
 
-        // --- NAMA HEADER BARU UNTUK KETERANGAN ---
-        const keteranganHeader = "Keterangan (Biasa | Terbatas | Rahasia | Segera | Penting)";
+        // --- NAMA HEADER BARU DENGAN DUA BARIS ---
+        const keteranganHeader = "Keterangan\n(Biasa | Terbatas | Rahasia | Segera | Penting)";
 
-        // 1. Format data agar sesuai dengan 7 kolom yang Anda inginkan
+        // 1. Format data agar sesuai dengan kolom yang Anda inginkan
         const dataToExport = arsipList.map(item => {
             const newItem = {};
             newItem["Nomor Berkas"] = item.nomorBerkas;
@@ -155,12 +155,17 @@ function DaftarArsipPage() {
         
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         
+        // 2. Atur lebar kolom
         const colWidths = [
             { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 50 },
             { wch: 15 }, { wch: 10 }, 
-            { wch: 60 } // Lebarkan kolom Keterangan agar header-nya muat
+            { wch: 60 } // Lebarkan kolom Keterangan
         ];
         worksheet['!cols'] = colWidths;
+
+        // 3. (BARU) Atur tinggi baris header agar muat 2 baris teks
+        const headerRowHeight = { hpt: 30 }; // Tinggi dalam points (1pt = 1/72 inch)
+        worksheet['!rows'] = [ headerRowHeight ]; // Terapkan pada baris pertama (index 0)
         
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Data Arsip Dinamis");
