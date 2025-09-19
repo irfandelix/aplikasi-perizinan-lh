@@ -10,6 +10,15 @@ import DaftarArsipPage from './DaftarArsipPage';
 import NotaDinasPage from './NotaDinasPage';
 import SuratKeluarPage from './SuratKeluarPage';
 
+// Gaya baru untuk tombol sekunder saat di-hover
+const dashboardStyles = `
+    .secondary:hover {
+        background-color: #1D6F42; /* Warna hijau Excel */
+        color: white;
+        border-color: #1D6F42;
+    }
+`;
+
 function DashboardPage() {
     const navigate = useNavigate();
     const userRole = localStorage.getItem('userRole');
