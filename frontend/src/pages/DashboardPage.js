@@ -5,21 +5,30 @@ import FormKantorLH from '../components/FormKantorLH';
 import FormTahapF from '../components/FormTahapF';
 import RekapTabel from '../components/RekapTabel';
 import CetakUlang from '../components/CetakUlang';
-import ArsipMenuPage from './MenuArsipPage'; // <-- Import halaman menu baru
-
+// Import semua halaman yang akan ditampilkan di tab
+import DaftarArsipPage from './DaftarArsipPage';
+import NotaDinasPage from './NotaDinasPage';
+import SuratKeluarPage from './SuratKeluarPage';
 
 function DashboardPage() {
     const navigate = useNavigate();
     const userRole = localStorage.getItem('userRole');
     
- // State default untuk tab aktif disesuaikan
-    const [activeTab, setActiveTab] = useState(userRole === 'MPP' ? 'A' : 'Update');
+    // Fungsi cerdas untuk menentukan tab default saat login
+    const getDefaultTab = () => {
+        if (userRole === 'MPP') return 'A';
+        if (userRole === 'Kantor LH') return 'Update';
+        if (userRole === 'Arsip') return 'ArsipDinamis'; // Default untuk role Arsip
+        return ''; 
+    };
+    const [activeTab, setActiveTab] = useState(getDefaultTab());
 
     const handleLogout = () => {
         localStorage.removeItem('userRole');
         navigate('/');
     };
 
+    // Tampilan untuk role MPP
     const renderMPPForms = () => (
         <div>
             <div className="tab-buttons">
@@ -35,6 +44,7 @@ function DashboardPage() {
         </div>
     );
 
+    // Tampilan untuk role Kantor LH
     const renderDLHForms = () => (
         <div>
             <div className="tab-buttons">
@@ -46,10 +56,21 @@ function DashboardPage() {
         </div>
     );
 
-        // --- RENDER UNTUK ROLE ARSIP DIPERBARUI TOTAL ---
+    // --- RENDER UNTUK ROLE ARSIP DIPERBARUI TOTAL MENJADI TAB ---
     const renderArsipDashboard = () => (
-        // Role Arsip sekarang melihat Halaman Menu, bukan tab
-        <ArsipMenuPage />
+        <div>
+            <div className="tab-buttons">
+                <button onClick={() => setActiveTab('ArsipDinamis')} className={activeTab === 'ArsipDinamis' ? 'active' : ''}>Arsip Dinamis Aktif</button>
+                <button onClick={() => setActiveTab('NotaDinas')} className={activeTab === 'NotaDinas' ? 'active' : ''}>Nota Dinas</button>
+                <button onClick={() => setActiveTab('SuratKeluar')} className={activeTab === 'SuratKeluar' ? 'active' : ''}>Surat Keluar</button>
+            </div>
+            
+            <div style={{marginTop: '2rem'}}>
+                {activeTab === 'ArsipDinamis' && <DaftarArsipPage />}
+                {activeTab === 'NotaDinas' && <NotaDinasPage />}
+                {activeTab === 'SuratKeluar' && <SuratKeluarPage />}
+            </div>
+        </div>
     );
 
     return (
@@ -59,7 +80,7 @@ function DashboardPage() {
                 <button onClick={handleLogout} className="danger">Logout</button>
             </div>
             
-            {/* Logika untuk menampilkan dashboard yang sesuai */}
+            {/* Logika untuk menampilkan dashboard yang sesuai dengan role */}
             {userRole === 'MPP' && renderMPPForms()}
             {userRole === 'Kantor LH' && renderDLHForms()}
             {userRole === 'Arsip' && renderArsipDashboard()}
@@ -68,3 +89,4 @@ function DashboardPage() {
 }
 
 export default DashboardPage;
+
