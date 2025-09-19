@@ -39,19 +39,19 @@ function ArsipMenuPage() {
                     onClick={() => navigate('/daftar-arsip')} 
                     className="arsip-menu-button"
                 >
-                    1. Arsip Dinamis Aktif
+                    Arsip Dinamis Aktif
                 </button>
                 <button 
                     onClick={() => navigate('/nota-dinas')} 
                     className="arsip-menu-button"
                 >
-                    2. Nota Dinas
+                    Nota Dinas
                 </button>
                 <button 
                     onClick={() => navigate('/surat-keluar')} 
                     className="arsip-menu-button"
                 >
-                    3. Surat Keluar
+                    Surat Keluar
                 </button>
             </div>
         </div>

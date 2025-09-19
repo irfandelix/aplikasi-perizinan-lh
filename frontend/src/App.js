@@ -8,8 +8,10 @@ import ArsipPage from './pages/ArsipPage'; // Pastikan ini di-import
 import DaftarArsipPage from './pages/DaftarArsipPage';
 import NotaDinasPage from './pages/NotaDinasPage';
 import SuratKeluarPage from './pages/SuratKeluarPage';
+import NotFoundPage from './pages/NotFoundPage';
 import './App.css';
 
+// Komponen ini bertugas melindungi halaman agar tidak bisa diakses sebelum login
 const PrivateRoute = ({ children }) => {
     const isLoggedIn = !!localStorage.getItem('userRole');
     return isLoggedIn ? children : <Navigate to="/" />;
@@ -19,7 +21,10 @@ function App() {
     return (
         <Router>
             <Routes>
+                {/* Rute untuk Halaman Login (Publik) */}
                 <Route path="/" element={<LoginPage />} />
+
+                {/* Rute yang Dilindungi (Hanya bisa diakses setelah login) */}
                 <Route
                     path="/dashboard"
                     element={<PrivateRoute><DashboardPage /></PrivateRoute>}
@@ -28,7 +33,6 @@ function App() {
                     path="/checklist/:noUrut"
                     element={<PrivateRoute><ChecklistPage /></PrivateRoute>}
                 />
-                {/* RUTE YANG MEMPERBAIKI MASALAH ANDA ADA DI SINI */}
                 <Route
                     path="/penerimaan/:noUrut"
                     element={<PrivateRoute><CetakPenerimaanPage /></PrivateRoute>}
@@ -37,10 +41,8 @@ function App() {
                     path="/arsip/:noUrut"
                     element={<PrivateRoute><ArsipPage /></PrivateRoute>}
                 />
-                {/* Rute baru untuk halaman arsip dinamis */}
-                 {/* --- RUTE BARU UNTUK SETIAP MENU ARSIP --- */}
                 <Route 
-                    path="/daftar-arsip" 
+                    path="/arsip-dinamis" 
                     element={<PrivateRoute><DaftarArsipPage /></PrivateRoute>} 
                 />
                 <Route 
@@ -50,7 +52,10 @@ function App() {
                 <Route 
                     path="/surat-keluar" 
                     element={<PrivateRoute><SuratKeluarPage /></PrivateRoute>} 
-                ></Route>
+                />
+                
+                {/* Rute "Catch-All" untuk 404 - HARUS DITARUH PALING BAWAH */}
+                <Route path="*" element={<NotFoundPage />} />
             </Routes>
         </Router>
     );
