@@ -42,7 +42,7 @@ function App() {
                     element={<PrivateRoute><ArsipPage /></PrivateRoute>}
                 />
                 <Route 
-                    path="/arsip-dinamis" 
+                    path="/daftar-arsip" 
                     element={<PrivateRoute><DaftarArsipPage /></PrivateRoute>} 
                 />
                 <Route 
