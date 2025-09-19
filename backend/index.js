@@ -259,7 +259,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
 app.get('/api/arsip/kode', async (req, res) => {
     try {
         const db = await connectToDb();
-        const allKodesRaw = await db.collection(COLLECTION_KODE).find({}).toArray();
+        const allKodesRaw = await db.collection('kode_klarifikasi').find({}).toArray();
         const allKodes = allKodesRaw.map(item => ({
             _id: item._id,
             kode: item["KLASIFIKASI"],
@@ -267,7 +267,6 @@ app.get('/api/arsip/kode', async (req, res) => {
         }));
         res.status(200).json({ success: true, data: allKodes });
     } catch (error) {
-        console.error("Error di /api/arsip/kode:", error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data kode klarifikasi.' });
     }
 });
@@ -276,23 +275,34 @@ app.get('/api/arsip/kode', async (req, res) => {
 app.get('/api/arsip/data', async (req, res) => {
     try {
         const db = await connectToDb();
-        // --- LOGIKA PENGURUTAN DIPERBARUI DI SINI ---
-        const allArsip = await db.collection(COLLECTION_ARSIP).find({})
-            .sort({ kodeKlarifikasi: 1, nomorBerkas: 1 }) // Urutkan berdasarkan Kode, lalu Nomor Berkas
+        const allArsip = await db.collection('arsip').find({})
+            .sort({ kodeKlarifikasi: 1, nomorBerkas: 1 })
             .toArray();
         res.status(200).json({ success: true, data: allArsip });
     } catch (error) {
-        console.error("Error di /api/arsip/data:", error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data arsip.' });
     }
 });
 
-// Menyimpan data arsip baru
+// --- ENDPOINT INI DIPERBARUI TOTAL DENGAN LOGIKA PENOMORAN OTOMATIS ---
 app.post('/api/arsip/data', async (req, res) => {
     try {
         const db = await connectToDb();
         const newArsipData = req.body;
+        
+        // 1. Hitung Nomor Berkas (Urutan total)
+        const totalBerkas = await db.collection(COLLECTION_ARSIP).countDocuments({});
+        newArsipData.nomorBerkas = totalBerkas + 1;
+
+        // 2. Hitung Nomor Item (Urutan per Kode Klarifikasi)
+        const totalItemUntukKode = await db.collection(COLLECTION_ARSIP).countDocuments({ 
+            kodeKlarifikasi: newArsipData.kodeKlarifikasi 
+        });
+        newArsipData.nomorItem = totalItemUntukKode + 1;
+
+        // Tambahkan tanggal pembuatan
         newArsipData.createdAt = new Date();
+
         await db.collection(COLLECTION_ARSIP).insertOne(newArsipData);
         res.status(201).json({ success: true, message: 'Data arsip berhasil disimpan!' });
     } catch (error) {
