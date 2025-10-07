@@ -136,7 +136,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
             
             const jenisDokumenSingkat = getStandardAbbreviation(data.jenisDokumen);
             const tglMasukParts = getDateParts(data.tanggalMasukDokumen);
-            const nomorChecklist = `600.4/${formatToThreeDigits(noUrut)}.${tglMasukParts.month}/REG.${jenisDokumenSingkat}/17/${tglMasukParts.year}`;
+            const nomorChecklist = `600.4/${formatToThreeDigits(noUrut)}.${tglMasukParts.month}/17/REG.${jenisDokumenSingkat}/${tglMasukParts.year}`;
             
             const newRecord = {
             ...data,
@@ -181,7 +181,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
         if (tahap === 'b') {
             const { tanggalUjiBerkas } = req.body;
             const tglParts = getDateParts(tanggalUjiBerkas);
-            generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/BA.HUA.${getStandardAbbreviation(existingData.jenisDokumen)}/17/${tglParts.year}`;
+            generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/17/BA.HUA.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
             updateQuery = { nomorUjiBerkas: generatedNomor, tanggalUjiBerkas: tanggalUjiBerkas };
         } 
         else if (tahap === 'c') { // BA V - Selalu Ganjil
@@ -190,7 +190,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
             let nextOddNumber = (maxNum % 2 === 0) ? maxNum + 1 : maxNum + 2; // Cari Ganjil berikutnya
             
             const tglParts = getDateParts(tanggalVerifikasi);
-            generatedNomor = `600.4.25/${formatToThreeDigits(nextOddNumber)}.${tglParts.month}/BA.V.${getStandardAbbreviation(existingData.jenisDokumen)}/17/${tglParts.year}`;
+            generatedNomor = `600.4.25/${formatToThreeDigits(nextOddNumber)}.${tglParts.month}/17/BA.V.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
             updateQuery = { nomorBAVerlap: generatedNomor, tanggalVerlap: tanggalVerifikasi };
         }
         else if (tahap === 'd') { // BA P - Selalu Genap
@@ -199,7 +199,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
             let nextEvenNumber = (maxNum % 2 !== 0) ? maxNum + 1 : maxNum + 2; // Cari Genap berikutnya
 
             const tglParts = getDateParts(tanggalPemeriksaan);
-            generatedNomor = `600.4.25/${formatToThreeDigits(nextEvenNumber)}.${tglParts.month}/BA.P.${getStandardAbbreviation(existingData.jenisDokumen)}/17/${tglParts.year}`;
+            generatedNomor = `600.4.25/${formatToThreeDigits(nextEvenNumber)}.${tglParts.month}/17/BA.P.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
             updateQuery = { nomorBAPemeriksaan: generatedNomor, tanggalPemeriksaan: tanggalPemeriksaan };
         }    
         else if (tahap === 'e') {
@@ -219,7 +219,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
          else if (tahap === 'f') {
             const { tanggalPHP } = req.body;
             const tglParts = getDateParts(tanggalPHP);
-            generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/PHP.${getStandardAbbreviation(existingData.jenisDokumen)}/17/${tglParts.year}`;
+            generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/17/PHP.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
             updateQuery = { nomorPHP: generatedNomor, tanggalPHP: tanggalPHP };
         }
         else if (tahap === 'g') {
@@ -230,7 +230,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
             };
             const jenisPerizinanSingkat = getIzinAbbreviation(jenisPerizinan);
             const tglParts = getDateParts(tanggalRisalah);
-            generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/RPD.${jenisPerizinanSingkat}/17/${tglParts.year}`;
+            generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/17/RPD.${jenisPerizinanSingkat}/${tglParts.year}`;
             updateQuery = { nomorIzinTerbit: nomorIzinTerbit, jenisPerizinan: jenisPerizinan, tanggalRisalah: tanggalRisalah, nomorRisalah: generatedNomor };
         }
         else if (tahap === 'arsip') {
