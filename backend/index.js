@@ -169,39 +169,46 @@ app.post('/api/submit/:tahap', async (req, res) => {
         }
 
         // Logika untuk SEMUA TAHAP UPDATE (B, C, D, dst.)
-        const { noUrut } = req.body;
-        if (!noUrut) return res.status(400).json({ success: false, message: 'No Urut diperlukan untuk update.'});
-
-        const existingData = await db.collection(COLLECTION_NAME).findOne({ noUrut: parseInt(noUrut) });
-        if (!existingData) return res.status(404).json({ success: false, message: 'No Urut tidak ditemukan' });
-
-        let updateQuery = {};
-        let generatedNomor = '';
-        
-        if (tahap === 'b') {
-            const { tanggalUjiBerkas } = req.body;
-            const tglParts = getDateParts(tanggalUjiBerkas);
-            generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/17/BA.HUA.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
-            updateQuery = { nomorUjiBerkas: generatedNomor, tanggalUjiBerkas: tanggalUjiBerkas };
+         if (tahap === 'b') {
+            const { tanggalPenerbitanUa } = req.body;
+            // Jika sudah ada nomor, hanya update tanggal. Jika belum, buat baru.
+            if (existingData.nomorUjiBerkas) {
+                updateQuery = { tanggalUjiBerkas: tanggalPenerbitanUa };
+                generatedNomor = existingData.nomorUjiBerkas;
+            } else {
+                const tglParts = getDateParts(tanggalPenerbitanUa);
+                generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/17/BA.HUA.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
+                updateQuery = { nomorUjiBerkas: generatedNomor, tanggalUjiBerkas: tanggalPenerbitanUa };
+            }
         } 
-        else if (tahap === 'c') { // BA V - Selalu Ganjil
+        else if (tahap === 'c') {
             const { tanggalVerifikasi } = req.body;
-            const maxNum = await getGlobalMaxSequentialNumber();
-            let nextOddNumber = (maxNum % 2 === 0) ? maxNum + 1 : maxNum + 2; // Cari Ganjil berikutnya
-            
-            const tglParts = getDateParts(tanggalVerifikasi);
-            generatedNomor = `600.4.25/${formatToThreeDigits(nextOddNumber)}.${tglParts.month}/17/BA.V.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
-            updateQuery = { nomorBAVerlap: generatedNomor, tanggalVerlap: tanggalVerifikasi };
+            // Jika sudah ada nomor, hanya update tanggal.
+            if (existingData.nomorBAVerlap) {
+                updateQuery = { tanggalVerlap: tanggalVerifikasi };
+                generatedNomor = existingData.nomorBAVerlap;
+            } else { // Jika belum, buat nomor baru.
+                const tglParts = getDateParts(tanggalVerifikasi);
+                const maxNum = await getGlobalMaxSequentialNumber(tglParts.year);
+                const nextSequentialNumber = maxNum + 1;
+                generatedNomor = `600.4.25/${formatToThreeDigits(nextSequentialNumber)}.${tglParts.month}/17/BA.V.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
+                updateQuery = { nomorBAVerlap: generatedNomor, tanggalVerlap: tanggalVerifikasi };
+            }
         }
-        else if (tahap === 'd') { // BA P - Selalu Genap
+        else if (tahap === 'd') {
             const { tanggalPemeriksaan } = req.body;
-            const maxNum = await getGlobalMaxSequentialNumber();
-            let nextEvenNumber = (maxNum % 2 !== 0) ? maxNum + 1 : maxNum + 2; // Cari Genap berikutnya
-
-            const tglParts = getDateParts(tanggalPemeriksaan);
-            generatedNomor = `600.4.25/${formatToThreeDigits(nextEvenNumber)}.${tglParts.month}/17/BA.P.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
-            updateQuery = { nomorBAPemeriksaan: generatedNomor, tanggalPemeriksaan: tanggalPemeriksaan };
-        }    
+            // Jika sudah ada nomor, hanya update tanggal.
+            if (existingData.nomorBAPemeriksaan) {
+                updateQuery = { tanggalPemeriksaan: tanggalPemeriksaan };
+                generatedNomor = existingData.nomorBAPemeriksaan;
+            } else { // Jika belum, buat nomor baru.
+                const tglParts = getDateParts(tanggalPemeriksaan);
+                const maxNum = await getGlobalMaxSequentialNumber(tglParts.year);
+                const nextSequentialNumber = maxNum + 1;
+                generatedNomor = `600.4.25/${formatToThreeDigits(nextSequentialNumber)}.${tglParts.month}/17/BA.P.${getStandardAbbreviation(existingData.jenisDokumen)}/17/${tglParts.year}`;
+                updateQuery = { nomorBAPemeriksaan: generatedNomor, tanggalPemeriksaan: tanggalPemeriksaan };
+            }
+        }
         else if (tahap === 'e') {
             const { tanggalRevisi, nomorRevisi } = req.body;
             if (!existingData.nomorBAPemeriksaan) return res.status(400).json({ success: false, message: 'Gagal: Tahap D harus diisi terlebih dahulu.' });
