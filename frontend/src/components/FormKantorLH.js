@@ -133,19 +133,19 @@ function FormKantorLH() {
     const renderFormContent = () => {
         if (!recordData) return null;
 
-        if (activeTab === 'Hasil Uji Administrasi Berkas') {
+        if (activeTab === 'b') {
             return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('b', tahapBData); }}> <fieldset><legend>Tahap Hasil Uji Administrasi Berkas</legend><div><label>Tanggal Penerbitan Uji Administrasi</label><input type="date" value={tahapBData.tanggalUjiBerkas} onChange={(e) => setTahapBData({ tanggalUjiBerkas: e.target.value })} required /></div></fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
         }
-        if (activeTab === 'Verifikasi Lapangan') {
+        if (activeTab === 'c') {
             return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('c', tahapCData); }}> <fieldset><legend>Tahap Verifikasi Lapangan</legend><div><label>Tanggal Verifikasi Lapangan</label><input type="date" value={tahapCData.tanggalVerifikasi} onChange={(e) => setTahapCData({ tanggalVerifikasi: e.target.value })} required /></div></fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
         }
-        if (activeTab === 'Pemeriksaan Berkas') {
+        if (activeTab === 'd') {
             return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('d', tahapDData); }}> <fieldset><legend>Tahap Pemeriksaan Berkas</legend><div><label>Tanggal Pemeriksaan Berkas</label><input type="date" value={tahapDData.tanggalPemeriksaan} onChange={(e) => setTahapDData({ tanggalPemeriksaan: e.target.value })} required /></div></fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
         }
-        if (activeTab === 'Pemeriksaan Revisi Berkas') {
+        if (activeTab === 'e') {
             return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('e', tahapEData); }}> <fieldset> <legend>Tahap Pemeriksaan Revisi Berkas (Revisi)</legend> <div className="form-grid"> <div> <label>Pilih Revisi</label> <select value={tahapEData.nomorRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, nomorRevisi: e.target.value }))}> <option value="1">Revisi 1</option> <option value="2">Revisi 2</option> <option value="3">Revisi 3</option> <option value="4">Revisi 4</option> <option value="5">Revisi 5</option> </select> </div> <div> <label>Tanggal Pemeriksaan Revisi</label> <input type="date" value={tahapEData.tanggalRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, tanggalRevisi: e.target.value }))} required /> </div> </div> </fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
         }
-        if (activeTab === 'Pengolahan Data') {
+        if (activeTab === 'g') {
             const jenisIzinOtomatis = mapDokumenToIzin(recordData.jenisDokumen);
             return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('g', tahapGData); }}> <fieldset> <legend>Tahap Pengolahan Data</legend> <div className="form-grid"> <div> <label>Nomor Perizinan Terbit</label> <input type="text" value={tahapGData.nomorIzinTerbit} onChange={(e) => setTahapGData(prev => ({ ...prev, nomorIzinTerbit: e.target.value }))} required /> </div> <div> <label>Jenis Perizinan</label> <input type="text" value={jenisIzinOtomatis} readOnly style={{ backgroundColor: '#e9ecef' }} /> </div> <div className="form-grid-full"> <label>Tanggal Pembuatan Risalah</label> <input type="date" value={tahapGData.tanggalRisalah} onChange={(e) => setTahapGData(prev => ({ ...prev, tanggalRisalah: e.target.value }))} required /> </div> </div> </fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
         }
