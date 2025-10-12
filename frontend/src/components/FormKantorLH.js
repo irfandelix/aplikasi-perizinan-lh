@@ -32,7 +32,7 @@ function FormKantorLH() {
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('B');
     
-    // State untuk setiap form, semua menggunakan camelCase
+    // --- STATE DIPERBARUI SEMUA MENJADI camelCase & SESUAI LOGIKA BARU ---
     const [tahapBData, setTahapBData] = useState({ tanggalPenerbitanUa: '' });
     const [tahapCData, setTahapCData] = useState({ tanggalVerifikasi: '' });
     const [tahapDData, setTahapDData] = useState({ tanggalPemeriksaan: '' });
@@ -124,19 +124,19 @@ function FormKantorLH() {
         if (!recordData) return null;
 
         if (activeTab === 'B') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('b', tahapBData); }}> <fieldset><legend>Hasil Uji Administrasi</legend><div><label>Tanggal Penerbitan Uji Administrasi</label><input type="date" value={tahapBData.tanggalPenerbitanUa} onChange={(e) => setTahapBData({ tanggalPenerbitanUa: e.target.value })} required /></div></fieldset> <button type="submit" className="primary">Simpan Tahap B</button> </form> );
+            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('b', tahapBData); }}> <fieldset><legend>Tahap B: Hasil Uji Administrasi</legend><div><label>Tanggal Penerbitan Uji Administrasi</label><input type="date" value={tahapBData.tanggalPenerbitanUa} onChange={(e) => setTahapBData({ tanggalPenerbitanUa: e.target.value })} required /></div></fieldset> <button type="submit" className="primary">Simpan Tahap B</button> </form> );
         }
         if (activeTab === 'C') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('c', tahapCData); }}> <fieldset><legend>Verifikasi Lapangan</legend><div><label>Tanggal Verifikasi Lapangan</label><input type="date" value={tahapCData.tanggalVerifikasi} onChange={(e) => setTahapCData({ tanggalVerifikasi: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap C</button> </form> );
+            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('c', tahapCData); }}> <fieldset><legend>Tahap C: Verifikasi Lapangan</legend><div><label>Tanggal Verifikasi Lapangan</label><input type="date" value={tahapCData.tanggalVerifikasi} onChange={(e) => setTahapCData({ tanggalVerifikasi: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap C</button> </form> );
         }
         if (activeTab === 'D') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('d', tahapDData); }}> <fieldset><legend>Pemeriksaan Berkas</legend><div><label>Tanggal Pemeriksaan Berkas</label><input type="date" value={tahapDData.tanggalPemeriksaan} onChange={(e) => setTahapDData({ tanggalPemeriksaan: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap D</button> </form> );
+            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('d', tahapDData); }}> <fieldset><legend>Tahap D: Pemeriksaan Berkas</legend><div><label>Tanggal Pemeriksaan Berkas</label><input type="date" value={tahapDData.tanggalPemeriksaan} onChange={(e) => setTahapDData({ tanggalPemeriksaan: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap D</button> </form> );
         }
         if (activeTab === 'E') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('e', tahapEData); }}> <fieldset> <legend>Pemeriksaan Revisi</legend> <div className="form-grid"> <div> <label>Pilih Revisi</label> <select name="nomorRevisi" value={tahapEData.nomorRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, nomorRevisi: e.target.value }))}> <option value="1">Revisi 1</option> <option value="2">Revisi 2</option> <option value="3">Revisi 3</option> <option value="4">Revisi 4</option> <option value="5">Revisi 5</option> </select> </div> <div> <label>Tanggal Pemeriksaan Revisi</label> <input type="date" name="tanggalRevisi" value={tahapEData.tanggalRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, tanggalRevisi: e.target.value }))} required /> </div> </div> </fieldset> <button type="submit" className="primary">Simpan Revisi</button> </form> );
+            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('e', tahapEData); }}> <fieldset> <legend>Tahap E: Pemeriksaan Revisi</legend> <div className="form-grid"> <div> <label>Pilih Revisi</label> <select name="nomorRevisi" value={tahapEData.nomorRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, nomorRevisi: e.target.value }))}> <option value="1">Revisi 1</option> <option value="2">Revisi 2</option> <option value="3">Revisi 3</option> <option value="4">Revisi 4</option> <option value="5">Revisi 5</option> </select> </div> <div> <label>Tanggal Pemeriksaan Revisi</label> <input type="date" name="tanggalRevisi" value={tahapEData.tanggalRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, tanggalRevisi: e.target.value }))} required /> </div> </div> </fieldset> <button type="submit" className="primary">Simpan Revisi</button> </form> );
         }
         if (activeTab === 'G') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('g', tahapGData); }}> <fieldset><legend>Risalah Pengolahan Data</legend><div> <label>Tanggal Pembuatan Risalah</label> <input type="date" value={tahapGData.tanggalPembuatanRisalah} onChange={(e) => setTahapGData({ tanggalPembuatanRisalah: e.target.value })} required /> </div> </fieldset> <button type="submit" className="primary">Simpan Tanggal Risalah</button> </form> );
+            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('g', tahapGData); }}> <fieldset><legend>Tahap G: Risalah Pengolahan Data</legend><div> <label>Tanggal Pembuatan Risalah</label> <input type="date" value={tahapGData.tanggalPembuatanRisalah} onChange={(e) => setTahapGData({ tanggalPembuatanRisalah: e.target.value })} required /> </div> </fieldset> <button type="submit" className="primary">Simpan Tanggal Risalah</button> </form> );
         }
         if (activeTab === 'Arsip') {
             const arsipChecklistItems = [ "Surat Permohonan", "BA Checklist Pelayanan", "BA Hasil Uji Administrasi", "BA Verifikasi Lapangan", "Undangan", "BA Pemeriksaan Dokumen", "Risalah Pengolahan Data", "Surat Penyampaian Dokumen Hasil Perbaikan", "Tanda Terima Berkas Perbaikan", "BA Pemeriksaan Dokumen II/III/Dst.", "PKPLH / SPPL / SKKL", "Dokumen Lingkungan" ];
@@ -169,7 +169,7 @@ function FormKantorLH() {
         }
         return null;
     };
-    
+
     return (
         <div>
             <style>{tableStyles}</style>
@@ -185,12 +185,12 @@ function FormKantorLH() {
             {recordData && (
                 <>
                     <div className="tab-buttons" style={{ marginTop: '2rem' }}>
-                        <button onClick={() => setActiveTab('B')} className={activeTab === 'B' ? 'active' : ''}>Uji Administrasi</button>
-                        <button onClick={() => setActiveTab('C')} className={activeTab === 'C' ? 'active' : ''}>Verifikasi Lapangan</button>
-                        <button onClick={() => setActiveTab('D')} className={activeTab === 'D' ? 'active' : ''}>Pemeriksaan Berkas</button>
-                        <button onClick={() => setActiveTab('E')} className={activeTab === 'E' ? 'active' : ''}>Pemeriksaan Berkas (Revisi)</button>
-                        <button onClick={() => setActiveTab('G')} className={activeTab === 'G' ? 'active' : ''}>Risalah Pengolahan Data</button>
-                        <button onClick={() => setActiveTab('Arsip')} className={activeTab === 'Arsip' ? 'active' : ''}>Pengarsipan</button>
+                        <button onClick={() => setActiveTab('B')} className={activeTab === 'B' ? 'active' : ''}>Tahap B</button>
+                        <button onClick={() => setActiveTab('C')} className={activeTab === 'C' ? 'active' : ''}>Tahap C</button>
+                        <button onClick={() => setActiveTab('D')} className={activeTab === 'D' ? 'active' : ''}>Tahap D</button>
+                        <button onClick={() => setActiveTab('E')} className={activeTab === 'E' ? 'active' : ''}>Tahap E (Revisi)</button>
+                        <button onClick={() => setActiveTab('G')} className={activeTab === 'G' ? 'active' : ''}>Tahap G</button>
+                        <button onClick={() => setActiveTab('Arsip')} className={activeTab === 'Arsip' ? 'active' : ''}>Arsip</button>
                     </div>
                     
                     {renderFormContent()}
