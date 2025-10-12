@@ -229,20 +229,27 @@ app.post('/api/submit/:tahap', async (req, res) => {
             generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/17/PHP.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
             updateQuery = { nomorPHP: generatedNomor, tanggalPHP: tanggalPHP };
         }
+        // --- LOGIKA TAHAP G DIPERBARUI ---
         else if (tahap === 'g') {
-            const { nomorIzinTerbit, jenisPerizinan, tanggalRisalah } = req.body;
+            const { tanggalPembuatanRisalah } = req.body;
             const getIzinAbbreviation = (type) => {
-                const map = { 'UKLUPL': 'PKPLH', 'DELH': 'PKPLH', 'DPLH': 'PKPLH', 'AMDAL': 'SKKL', 'SPPL': 'SPPL', 'PERTEK AIR LIMBAH': 'PERTEK.AL', 'PERTEK EMISI': 'PERTEK.EM', 'RINTEK Limbah B3': 'RINTEK.LB3', 'SLO': 'SLO' };
-                return map[type] || type;
+                const map = { 'UKLUPL': 'PKPLH', 'DELH': 'PKPLH', 'DPLH': 'PKPLH', 'AMDAL': 'SKKL', 'SPPL': 'SPPL' };
+                return map[type] || getStandardAbbreviation(type);
             };
-            const jenisPerizinanSingkat = getIzinAbbreviation(jenisPerizinan);
-            const tglParts = getDateParts(tanggalRisalah);
-            generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/17/RPD.${jenisPerizinanSingkat}/${tglParts.year}`;
-            updateQuery = { nomorIzinTerbit: nomorIzinTerbit, jenisPerizinan: jenisPerizinan, tanggalRisalah: tanggalRisalah, nomorRisalah: generatedNomor };
+            const jenisPerizinanSingkat = getIzinAbbreviation(existingData.jenisDokumen);
+            const tglParts = getDateParts(tanggalPembuatanRisalah);
+            generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/RPD.${jenisPerizinanSingkat}/17/${tglParts.year}`;
+            updateQuery = { tanggalRisalah: tanggalPembuatanRisalah, nomorRisalah: generatedNomor };
         }
-        else if (tahap === 'arsip') {
-            const { checklistArsip } = req.body;
-            updateQuery = { checklistArsip: checklistArsip };
+        // --- LOGIKA TAHAP ARSIP DIPERBARUI ---
+        else if (tahap === 'arsip_perizinan') {
+            const { checklistArsip, nomorIzinTerbit } = req.body;
+            const mapDokumenToIzin = (type) => {
+                const mapping = { 'SPPL': 'SPPL', 'UKLUPL': 'PKPLH', 'AMDAL': 'SKKL', 'DELH': 'PKPLH', 'DPLH': 'PKPLH' };
+                return mapping[type] || getStandardAbbreviation(type);
+            };
+            const jenisPerizinan = mapDokumenToIzin(existingData.jenisDokumen);
+            updateQuery = { checklistArsip, nomorIzinTerbit, jenisPerizinan };
         }
         else {
             return res.status(400).json({ success: false, message: `Tahap '${tahap}' tidak valid.` });
