@@ -25,15 +25,6 @@ const tableStyles = `
     }
 `;
 
-const mapDokumenToIzin = (jenisDokumen) => {
-    const mapping = {
-        'SPPL': 'SPPL', 'UKLUPL': 'PKPLH', 'AMDAL': 'SKKL',
-        'DELH': 'PKPLH', 'DPLH': 'PKPLH', 'PERTEK AIR LIMBAH': 'PERTEK AIR LIMBAH',
-        'PERTEK EMISI': 'PERTEK EMISI', 'RINTEK LB3': 'RINTEK Limbah B3', 'SLO': 'SLO',
-    };
-    return mapping[jenisDokumen] || '';
-};
-
 function FormKantorLH() {
     const [nomorChecklist, setNomorChecklist] = useState('');
     const [recordData, setRecordData] = useState(null);
@@ -41,12 +32,13 @@ function FormKantorLH() {
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('B');
     
-    const [tahapBData, setTahapBData] = useState({ tanggalUjiBerkas: '' });
+    // State untuk setiap form, semua menggunakan camelCase
+    const [tahapBData, setTahapBData] = useState({ tanggalPenerbitanUa: '' });
     const [tahapCData, setTahapCData] = useState({ tanggalVerifikasi: '' });
     const [tahapDData, setTahapDData] = useState({ tanggalPemeriksaan: '' });
     const [tahapEData, setTahapEData] = useState({ tanggalRevisi: '', nomorRevisi: '1' });
-    const [tahapGData, setTahapGData] = useState({ nomorIzinTerbit: '', tanggalRisalah: '' });
-    const [arsipData, setArsipData] = useState({});
+    const [tahapGData, setTahapGData] = useState({ tanggalPembuatanRisalah: '' });
+    const [arsipData, setArsipData] = useState({ nomorIzinTerbit: '', checklistArsip: {} });
 
     const fetchRecord = useCallback(async (checklist) => {
         if (!checklist) {
@@ -67,16 +59,21 @@ function FormKantorLH() {
         }
     }, []);
 
+    // Effect untuk mengisi form dengan data yang sudah ada saat recordData berubah
     useEffect(() => {
-        if (recordData && recordData.checklistArsip) {
-            const savedChecks = recordData.checklistArsip.split(',').map(item => item.trim());
+        if (recordData) {
+            setTahapBData({ tanggalPenerbitanUa: recordData.tanggalUjiBerkas || '' });
+            setTahapCData({ tanggalVerifikasi: recordData.tanggalVerlap || '' });
+            setTahapDData({ tanggalPemeriksaan: recordData.tanggalPemeriksaan || '' });
+            setTahapGData({ tanggalPembuatanRisalah: recordData.tanggalRisalah || '' });
+            
+            const savedChecks = recordData.checklistArsip ? recordData.checklistArsip.split(',').map(item => item.trim()) : [];
             const checkState = {};
-            savedChecks.forEach(item => {
-                if(item) checkState[item] = true;
+            savedChecks.forEach(item => { if(item) checkState[item] = true; });
+            setArsipData({
+                nomorIzinTerbit: recordData.nomorIzinTerbit || '',
+                checklistArsip: checkState
             });
-            setArsipData(checkState);
-        } else {
-            setArsipData({});
         }
     }, [recordData]);
 
@@ -88,20 +85,15 @@ function FormKantorLH() {
     }, [nomorChecklist, fetchRecord]);
 
     const handleApiSubmit = async (endpoint, payload) => {
-        if (!recordData) {
-            alert("Pilih dokumen yang valid terlebih dahulu.");
-            return;
-        }
+        if (!recordData) return alert("Pilih dokumen yang valid terlebih dahulu.");
         
         let finalPayload = { ...payload };
-        if (endpoint === 'g') {
-            finalPayload.jenisPerizinan = mapDokumenToIzin(recordData.jenisDokumen);
-        }
-        if (endpoint === 'arsip') {
-            const checkedItemsString = Object.keys(payload.checklistArsip)
-                .filter(key => payload.checklistArsip[key])
-                .join(', ');
-            finalPayload = { checklistArsip: checkedItemsString };
+        if (endpoint === 'arsip_perizinan') {
+            const checkedItemsString = Object.keys(payload.checklistArsip).filter(key => payload.checklistArsip[key]).join(', ');
+            finalPayload = { 
+                checklistArsip: checkedItemsString,
+                nomorIzinTerbit: payload.nomorIzinTerbit
+            };
         }
 
         try {
@@ -110,87 +102,68 @@ function FormKantorLH() {
                 ...finalPayload 
             });
             alert(response.data.message);
-            
-            fetchRecord(nomorChecklist);
-
-            if (endpoint === 'b') setTahapBData({ tanggalUjiBerkas: '' });
-            if (endpoint === 'c') setTahapCData({ tanggalVerifikasi: '' });
-            if (endpoint === 'd') setTahapDData({ tanggalPemeriksaan: '' });
-            if (endpoint === 'e') setTahapEData({ tanggalRevisi: '', nomorRevisi: '1' });
-            if (endpoint === 'g') setTahapGData({ nomorIzinTerbit: '', tanggalRisalah: '' });
-            if (endpoint === 'arsip') setArsipData({});
-
+            fetchRecord(nomorChecklist); // Ambil ulang data untuk refresh
         } catch (err) {
             alert(err.response?.data?.message || "Terjadi kesalahan");
         }
     };
     
-    const handleArsipCheckboxChange = (e) => {
-        const { name, checked } = e.target;
-        setArsipData(prev => ({ ...prev, [name]: checked }));
+    const handleArsipChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        if (type === 'checkbox') {
+            setArsipData(prev => ({
+                ...prev,
+                checklistArsip: { ...prev.checklistArsip, [name]: checked }
+            }));
+        } else {
+            setArsipData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const renderFormContent = () => {
         if (!recordData) return null;
 
         if (activeTab === 'B') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('b', tahapBData); }}> <fieldset><legend>Tahap Hasil Uji Administrasi Berkas</legend><div><label>Tanggal Penerbitan Uji Administrasi</label><input type="date" value={tahapBData.tanggalUjiBerkas} onChange={(e) => setTahapBData({ tanggalUjiBerkas: e.target.value })} required /></div></fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
+            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('b', tahapBData); }}> <fieldset><legend>Hasil Uji Administrasi</legend><div><label>Tanggal Penerbitan Uji Administrasi</label><input type="date" value={tahapBData.tanggalPenerbitanUa} onChange={(e) => setTahapBData({ tanggalPenerbitanUa: e.target.value })} required /></div></fieldset> <button type="submit" className="primary">Simpan Tahap B</button> </form> );
         }
         if (activeTab === 'C') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('c', tahapCData); }}> <fieldset><legend>Tahap Verifikasi Lapangan</legend><div><label>Tanggal Verifikasi Lapangan</label><input type="date" value={tahapCData.tanggalVerifikasi} onChange={(e) => setTahapCData({ tanggalVerifikasi: e.target.value })} required /></div></fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
+            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('c', tahapCData); }}> <fieldset><legend>Verifikasi Lapangan</legend><div><label>Tanggal Verifikasi Lapangan</label><input type="date" value={tahapCData.tanggalVerifikasi} onChange={(e) => setTahapCData({ tanggalVerifikasi: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap C</button> </form> );
         }
         if (activeTab === 'D') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('d', tahapDData); }}> <fieldset><legend>Tahap Pemeriksaan Berkas</legend><div><label>Tanggal Pemeriksaan Berkas</label><input type="date" value={tahapDData.tanggalPemeriksaan} onChange={(e) => setTahapDData({ tanggalPemeriksaan: e.target.value })} required /></div></fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
+            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('d', tahapDData); }}> <fieldset><legend>Pemeriksaan Berkas</legend><div><label>Tanggal Pemeriksaan Berkas</label><input type="date" value={tahapDData.tanggalPemeriksaan} onChange={(e) => setTahapDData({ tanggalPemeriksaan: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap D</button> </form> );
         }
         if (activeTab === 'E') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('e', tahapEData); }}> <fieldset> <legend>Tahap Pemeriksaan Revisi Berkas (Revisi)</legend> <div className="form-grid"> <div> <label>Pilih Revisi</label> <select value={tahapEData.nomorRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, nomorRevisi: e.target.value }))}> <option value="1">Revisi 1</option> <option value="2">Revisi 2</option> <option value="3">Revisi 3</option> <option value="4">Revisi 4</option> <option value="5">Revisi 5</option> </select> </div> <div> <label>Tanggal Pemeriksaan Revisi</label> <input type="date" value={tahapEData.tanggalRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, tanggalRevisi: e.target.value }))} required /> </div> </div> </fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
+            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('e', tahapEData); }}> <fieldset> <legend>Pemeriksaan Revisi</legend> <div className="form-grid"> <div> <label>Pilih Revisi</label> <select name="nomorRevisi" value={tahapEData.nomorRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, nomorRevisi: e.target.value }))}> <option value="1">Revisi 1</option> <option value="2">Revisi 2</option> <option value="3">Revisi 3</option> <option value="4">Revisi 4</option> <option value="5">Revisi 5</option> </select> </div> <div> <label>Tanggal Pemeriksaan Revisi</label> <input type="date" name="tanggalRevisi" value={tahapEData.tanggalRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, tanggalRevisi: e.target.value }))} required /> </div> </div> </fieldset> <button type="submit" className="primary">Simpan Revisi</button> </form> );
         }
         if (activeTab === 'G') {
-            const jenisIzinOtomatis = mapDokumenToIzin(recordData.jenisDokumen);
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('g', tahapGData); }}> <fieldset> <legend>Tahap Pengolahan Data</legend> <div className="form-grid"> <div> <label>Nomor Perizinan Terbit</label> <input type="text" value={tahapGData.nomorIzinTerbit} onChange={(e) => setTahapGData(prev => ({ ...prev, nomorIzinTerbit: e.target.value }))} required /> </div> <div> <label>Jenis Perizinan</label> <input type="text" value={jenisIzinOtomatis} readOnly style={{ backgroundColor: '#e9ecef' }} /> </div> <div className="form-grid-full"> <label>Tanggal Pembuatan Risalah</label> <input type="date" value={tahapGData.tanggalRisalah} onChange={(e) => setTahapGData(prev => ({ ...prev, tanggalRisalah: e.target.value }))} required /> </div> </div> </fieldset> <button type="submit" className="primary" disabled={!recordData}>Simpan</button> </form> );
+            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('g', tahapGData); }}> <fieldset><legend>Risalah Pengolahan Data</legend><div> <label>Tanggal Pembuatan Risalah</label> <input type="date" value={tahapGData.tanggalPembuatanRisalah} onChange={(e) => setTahapGData({ tanggalPembuatanRisalah: e.target.value })} required /> </div> </fieldset> <button type="submit" className="primary">Simpan Tanggal Risalah</button> </form> );
         }
         if (activeTab === 'Arsip') {
-            const arsipChecklistItems = [
-                "Surat Permohonan", "BA Checklist Pelayanan (Kelengkapan Berkas)", "BA Hasil Uji Administrasi",
-                "BA Verifikasi Lapangan", "Undangan", "BA Pemeriksaan Dokumen", "Risalah Pengolahan Data",
-                "Surat Penyampaian Dokumen Hasil Perbaikan", "Tanda Terima Berkas Penerimaan Hasil Perbaikan",
-                "BA Pemeriksaan Dokumen II/III/Dst.", "PKPLH / SPPL / SKKL", "Dokumen Lingkungan"
-            ];
+            const arsipChecklistItems = [ "Surat Permohonan", "BA Checklist Pelayanan", "BA Hasil Uji Administrasi", "BA Verifikasi Lapangan", "Undangan", "BA Pemeriksaan Dokumen", "Risalah Pengolahan Data", "Surat Penyampaian Dokumen Hasil Perbaikan", "Tanda Terima Berkas Perbaikan", "BA Pemeriksaan Dokumen II/III/Dst.", "PKPLH / SPPL / SKKL", "Dokumen Lingkungan" ];
             return (
-                <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('arsip', { checklistArsip: arsipData }); }}>
+                <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('arsip_perizinan', arsipData); }}>
                     <fieldset>
-                        <legend>Checklist Arsip Dokumen Perizinan</legend>
-                        <table className="record-table" style={{marginBottom: '2rem'}}>
-                            <tbody>
-                                <tr><th>Nama Dokumen</th><td>{recordData.jenisDokumen}</td></tr>
-                                <tr><th>Nomor Surat Permohonan</th><td>{recordData.nomorSuratPermohonan}</td></tr>
-                                <tr><th>Nomor Checklist Kelengkapan</th><td>{recordData.nomorChecklist}</td></tr>
-                                <tr><th>Nomor BA Hasil Uji Administrasi</th><td>{recordData.nomorUjiBerkas}</td></tr>
-                                <tr><th>Nomor BA Verifikasi Lapangan</th><td>{recordData.nomorBAVerlap}</td></tr>
-                                <tr><th>Nomor BA Pemeriksaan Berkas</th><td>{recordData.nomorBAPemeriksaan}</td></tr>
-                                <tr><th>Nomor PKPLH</th><td>{recordData.nomorIzinTerbit}</td></tr>
-                                <tr><th>Nomor Penerimaan Hasil Perbaikan</th><td>{recordData.nomorPHP}</td></tr>
-                                <tr><th>Nomor Risalah Pengolahan Data</th><td>{recordData.nomorRisalah}</td></tr>
-                            </tbody>
-                        </table>
+                        <legend>Checklist Arsip & Izin Terbit</legend>
+                        <div className="form-grid-full" style={{marginBottom: '1.5rem'}}>
+                            <label>Nomor Izin Terbit (SPPL/PKPLH/SKKL)</label>
+                            <input type="text" name="nomorIzinTerbit" value={arsipData.nomorIzinTerbit} onChange={handleArsipChange} />
+                        </div>
                         <table className="record-table">
-                            <thead style={{backgroundColor:'#E7E6E6', textAlign:'center'}}>
-                                <tr><th style={{width:'5%'}}>No</th><th>Dokumen</th><th style={{width:'15%'}}>Checklist</th></tr>
-                            </thead>
-                            <tbody>
+                           <thead><tr><th style={{width:'5%'}}>No</th><th>Dokumen</th><th style={{width:'15%'}}>Checklist</th></tr></thead>
+                           <tbody>
                                 {arsipChecklistItems.map((item, index) => (
                                     <tr key={item}>
                                         <td style={{textAlign:'center'}}>{index + 1}</td>
                                         <td>{item}</td>
                                         <td style={{textAlign:'center'}}>
-                                            <input type="checkbox" name={item} checked={arsipData[item] || false} onChange={handleArsipCheckboxChange} style={{width:'20px', height:'20px'}}/>
+                                            <input type="checkbox" name={item} checked={arsipData.checklistArsip[item] || false} onChange={handleArsipChange} style={{width:'20px', height:'20px'}}/>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </fieldset>
-                    <button type="submit" className="primary" disabled={!recordData}>Simpan Checklist Arsip</button>
+                    <button type="submit" className="primary">Simpan Data Arsip</button>
                 </form>
             );
         }
@@ -212,7 +185,7 @@ function FormKantorLH() {
             <fieldset>
                 <legend>Pilih Dokumen</legend>
                 <label htmlFor="nomorChecklist">Masukkan Nomor Registrasi Dokumen (Nomor Checklist):</label>
-                <input id="nomorChecklist" type="text" value={nomorChecklist} onChange={(e) => setNomorChecklist(e.target.value)} placeholder="Ketik atau tempel Nomor Checklist di sini..." required />
+                <input id="nomorChecklist" type="text" value={nomorChecklist} onChange={(e) => setNomorChecklist(e.target.value)} placeholder="Ketik atau tempel Nomor Checklist..." required />
                 {loading && <p>Mencari data...</p>}
                 {error && <p style={{ color: 'var(--danger-color)' }}>{error}</p>}
             </fieldset>
@@ -220,11 +193,12 @@ function FormKantorLH() {
             {recordData && (
                 <>
                     <div className="tab-buttons" style={{ marginTop: '2rem' }}>
-                        <button onClick={() => setActiveTab('B')} className={activeTab === 'B' ? 'active' : ''}>Hasil Uji Administrasi</button>
-                        <button onClick={() => setActiveTab('C')} className={activeTab === 'C' ? 'active' : ''}>Verifikasi Lapangan</button>
-                        <button onClick={() => setActiveTab('D')} className={activeTab === 'D' ? 'active' : ''}>Pemeriksaan Berkas</button>
-                        <button onClick={() => setActiveTab('E')} className={activeTab === 'E' ? 'active' : ''}>Pemeriksaan Revisi Berkas</button>
-                        <button onClick={() => setActiveTab('G')} className={activeTab === 'G' ? 'active' : ''}>Risalah Pengolahan Data</button>
+                        <button onClick={() => setActiveTab('B')} className={activeTab === 'B' ? 'active' : ''}>Tahap B</button>
+                        <button onClick={() => setActiveTab('C')} className={activeTab === 'C' ? 'active' : ''}>Tahap C</button>
+                        <button onClick={() => setActiveTab('D')} className={activeTab === 'D' ? 'active' : ''}>Tahap D</button>
+                        <button onClick={() => setActiveTab('E')} className={activeTab === 'E' ? 'active' : ''}>Tahap E (Revisi)</button>
+                        <button onClick={() => setActiveTab('G')} className={activeTab === 'G' ? 'active' : ''}>Tahap G</button>
+                        <button onClick={() => setActiveTab('Arsip')} className={activeTab === 'Arsip' ? 'active' : ''}>Arsip</button>
                         <button onClick={openArsipPrintPage} className="secondary">Cetak Arsip</button>
                     </div>
                     
@@ -255,7 +229,7 @@ function FormKantorLH() {
                                 {recordData.nomorRevisi4 && ( <tr><th>Nomor BA Revisi 4</th><td><span>{recordData.nomorRevisi4}</span> ({recordData.tanggalRevisi4})</td></tr> )}
                                 {recordData.nomorRevisi5 && ( <tr><th>Nomor BA Revisi 5</th><td><span>{recordData.nomorRevisi5}</span> ({recordData.tanggalRevisi5})</td></tr> )}
                                 {recordData.nomorPHP && (<><tr><th>Nomor Penerimaan Hasil Perbaikan</th><td><span>{recordData.nomorPHP}</span></td></tr><tr><th>Tanggal Penerimaan Hasil Perbaikan</th><td>{recordData.tanggalPHP}</td></tr></>)}
-                                {recordData.nomorIzinTerbit && (<><tr><th>Nomor Izin Terbit</th><td><span>{recordData.nomorIzinTerbit}</span></td></tr><tr><th>Jenis Perizinan</th><td>{recordData.jenisPerizinan}</td></tr><tr><th>Nomor Risalah</th><td><span>{recordData.nomorRisalah}</span></td></tr><tr><th>Tanggal Risalah</th><td>{recordData.tanggalRisalah}</td></tr></>)}
+                                {recordData.nomorRisalah && (<><tr><th>Nomor Izin Terbit</th><td><span>{recordData.nomorIzinTerbit}</span></td></tr><tr><th>Jenis Perizinan</th><td>{recordData.jenisPerizinan}</td></tr><tr><th>Nomor Risalah</th><td><span>{recordData.nomorRisalah}</span></td></tr><tr><th>Tanggal Risalah</th><td>{recordData.tanggalRisalah}</td></tr></>)}
                             </tbody>
                         </table>
                     </div>
@@ -266,5 +240,4 @@ function FormKantorLH() {
 }
 
 export default FormKantorLH;
-
 
