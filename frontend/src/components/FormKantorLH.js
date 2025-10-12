@@ -59,7 +59,7 @@ function FormKantorLH() {
         }
     }, []);
 
-    // Effect untuk mengisi form dengan data yang sudah ada saat recordData berubah
+    // --- EFFECT BARU: Mengisi form dengan data yang sudah ada ---
     useEffect(() => {
         if (recordData) {
             setTahapBData({ tanggalPenerbitanUa: recordData.tanggalUjiBerkas || '' });
