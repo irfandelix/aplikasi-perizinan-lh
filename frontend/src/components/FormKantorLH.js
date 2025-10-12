@@ -32,7 +32,7 @@ function FormKantorLH() {
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('B');
     
-    // --- NAMA STATE DI SINI DIPERBARUI SEMUA MENJADI camelCase ---
+    // --- NAMA STATE DI SINI DIPERBARUI SEMUA MENJADI camelCase & SESUAI LOGIKA BARU ---
     const [tahapBData, setTahapBData] = useState({ tanggalPenerbitanUa: '' });
     const [tahapCData, setTahapCData] = useState({ tanggalVerifikasi: '' });
     const [tahapDData, setTahapDData] = useState({ tanggalPemeriksaan: '' });
@@ -84,7 +84,7 @@ function FormKantorLH() {
         return () => clearTimeout(handler);
     }, [nomorChecklist, fetchRecord]);
 
-    const handleApiSubmit = async (endpoint, payload) => {
+    const handleApiSubmit = async (endpoint, payload, callback) => {
         if (!recordData) return alert("Pilih dokumen yang valid terlebih dahulu.");
         
         let finalPayload = { ...payload };
@@ -103,6 +103,7 @@ function FormKantorLH() {
             });
             alert(response.data.message);
             fetchRecord(nomorChecklist); // Ambil ulang data untuk refresh
+            if (callback) callback();
         } catch (err) {
             alert(err.response?.data?.message || "Terjadi kesalahan");
         }

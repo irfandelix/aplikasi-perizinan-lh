@@ -169,7 +169,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
         }
 
         // Logika untuk SEMUA TAHAP UPDATE (B, C, D, dst.)
-         if (tahap === 'B') {
+         if (tahap === 'b') {
             const { tanggalPenerbitanUa } = req.body;
             // Jika sudah ada nomor, hanya update tanggal. Jika belum, buat baru.
             if (existingData.nomorUjiBerkas) {
@@ -181,7 +181,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
                 updateQuery = { nomorUjiBerkas: generatedNomor, tanggalUjiBerkas: tanggalPenerbitanUa };
             }
         } 
-        else if (tahap === 'C') {
+        else if (tahap === 'c') {
             const { tanggalVerifikasi } = req.body;
             // Jika sudah ada nomor, hanya update tanggal.
             if (existingData.nomorBAVerlap) {
@@ -195,7 +195,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
                 updateQuery = { nomorBAVerlap: generatedNomor, tanggalVerlap: tanggalVerifikasi };
             }
         }
-        else if (tahap === 'D') {
+        else if (tahap === 'd') {
             const { tanggalPemeriksaan } = req.body;
             // Jika sudah ada nomor, hanya update tanggal.
             if (existingData.nomorBAPemeriksaan) {
@@ -209,7 +209,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
                 updateQuery = { nomorBAPemeriksaan: generatedNomor, tanggalPemeriksaan: tanggalPemeriksaan };
             }
         }
-        else if (tahap === 'E') {
+        else if (tahap === 'e') {
             const { tanggalRevisi, nomorRevisi } = req.body;
             if (!existingData.nomorBAPemeriksaan) return res.status(400).json({ success: false, message: 'Gagal: Tahap D harus diisi terlebih dahulu.' });
             const revisionMap = { '1': { no: 'nomorRevisi1', tgl: 'tanggalRevisi1' }, '2': { no: 'nomorRevisi2', tgl: 'tanggalRevisi2' }, '3': { no: 'nomorRevisi3', tgl: 'tanggalRevisi3' }, '4': { no: 'nomorRevisi4', tgl: 'tanggalRevisi4' }, '5': { no: 'nomorRevisi5', tgl: 'tanggalRevisi5' } };
@@ -230,7 +230,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
             updateQuery = { nomorPHP: generatedNomor, tanggalPHP: tanggalPHP };
         }
         // --- LOGIKA TAHAP G DIPERBARUI ---
-        else if (tahap === 'G') {
+        else if (tahap === 'g') {
             const { tanggalPembuatanRisalah } = req.body;
             const getIzinAbbreviation = (type) => {
                 const map = { 'UKLUPL': 'PKPLH', 'DELH': 'PKPLH', 'DPLH': 'PKPLH', 'AMDAL': 'SKKL', 'SPPL': 'SPPL' };
