@@ -141,7 +141,7 @@ function FormKantorLH() {
         if (activeTab === 'Arsip') {
             const arsipChecklistItems = [ "Surat Permohonan", "BA Checklist Pelayanan", "BA Hasil Uji Administrasi", "BA Verifikasi Lapangan", "Undangan", "BA Pemeriksaan Dokumen", "Risalah Pengolahan Data", "Surat Penyampaian Dokumen Hasil Perbaikan", "Tanda Terima Berkas Perbaikan", "BA Pemeriksaan Dokumen II/III/Dst.", "PKPLH / SPPL / SKKL", "Dokumen Lingkungan" ];
             return (
-                <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('arsip_perizinan', arsipData); }}>
+                <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('arsip_perizinan', arsipData, () => window.open(`/arsip/${recordData.noUrut}`, '_blank')); }}>
                     <fieldset>
                         <legend>Checklist Arsip & Izin Terbit</legend>
                         <div className="form-grid-full" style={{marginBottom: '1.5rem'}}>
@@ -163,21 +163,13 @@ function FormKantorLH() {
                             </tbody>
                         </table>
                     </fieldset>
-                    <button type="submit" className="primary">Simpan Data Arsip</button>
+                    <button type="submit" className="primary">Simpan & Cetak Arsip</button>
                 </form>
             );
         }
         return null;
     };
-
-    const openArsipPrintPage = () => {
-        if (recordData && recordData.noUrut) {
-            window.open(`/arsip/${recordData.noUrut}`, '_blank');
-        } else {
-            alert("Silakan cari dokumen terlebih dahulu.");
-        }
-    };
-
+    
     return (
         <div>
             <style>{tableStyles}</style>
@@ -193,13 +185,12 @@ function FormKantorLH() {
             {recordData && (
                 <>
                     <div className="tab-buttons" style={{ marginTop: '2rem' }}>
-                        <button onClick={() => setActiveTab('B')} className={activeTab === 'B' ? 'active' : ''}>Tahap B</button>
-                        <button onClick={() => setActiveTab('C')} className={activeTab === 'C' ? 'active' : ''}>Tahap C</button>
-                        <button onClick={() => setActiveTab('D')} className={activeTab === 'D' ? 'active' : ''}>Tahap D</button>
-                        <button onClick={() => setActiveTab('E')} className={activeTab === 'E' ? 'active' : ''}>Tahap E (Revisi)</button>
-                        <button onClick={() => setActiveTab('G')} className={activeTab === 'G' ? 'active' : ''}>Tahap G</button>
-                        <button onClick={() => setActiveTab('Arsip')} className={activeTab === 'Arsip' ? 'active' : ''}>Arsip</button>
-                        <button onClick={openArsipPrintPage} className="secondary">Cetak Arsip</button>
+                        <button onClick={() => setActiveTab('B')} className={activeTab === 'B' ? 'active' : ''}>Tahap Uji Administrasi</button>
+                        <button onClick={() => setActiveTab('C')} className={activeTab === 'C' ? 'active' : ''}>Tahap Verifikasi Lapangan</button>
+                        <button onClick={() => setActiveTab('D')} className={activeTab === 'D' ? 'active' : ''}>Tahap Pemeriksaan Berkas</button>
+                        <button onClick={() => setActiveTab('E')} className={activeTab === 'E' ? 'active' : ''}>Tahap Pemeriksaan Berkas (Revisi)</button>
+                        <button onClick={() => setActiveTab('G')} className={activeTab === 'G' ? 'active' : ''}>Tahap Risalah Pengolahan Data</button>
+                        <button onClick={() => setActiveTab('Arsip')} className={activeTab === 'Arsip' ? 'active' : ''}>Tahap Pengarsipan</button>
                     </div>
                     
                     {renderFormContent()}
