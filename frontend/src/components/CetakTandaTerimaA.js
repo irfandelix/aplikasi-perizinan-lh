@@ -41,6 +41,11 @@ function CetakTandaTerimaA({ data }) {
                             <td style={{ padding: '8px' }}>{data.namaKegiatan}</td>
                         </tr>
                         <tr>
+                            <td style={{ width: '30%', padding: '8px' }}>Lokasi Kegiatan</td>
+                            <td style={{ width: '1%', padding: '8px' }}>:</td>
+                            <td style={{ padding: '8px' }}>{data.lokasiKegiatan}</td>
+                        </tr>
+                        <tr>
                             <td style={{ padding: '8px' }}>Nomor Registrasi</td>
                             <td style={{ padding: '8px' }}>:</td>
                             <td style={{ padding: '8px', fontWeight: 'bold' }}>{data.nomorChecklist}</td>
