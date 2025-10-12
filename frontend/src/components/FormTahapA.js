@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import api from '../api';
 
 function FormTahapA() {
-    const navigate = useNavigate();
-    // NAMA FIELD DI SINI SUDAH DIPERBARUI (camelCase)
     const initialFormState = {
         nomorSuratPermohonan: '',
         tanggalSuratPermohonan: '',
@@ -27,12 +24,8 @@ function FormTahapA() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-
         if (name === 'teleponPemrakarsa' || name === 'teleponKonsultan') {
-            let formattedValue = value;
-            // Hanya izinkan angka dan simbol '+'
-            formattedValue = formattedValue.replace(/[^0-9+]/g, '');
-            
+            let formattedValue = value.replace(/[^0-9+]/g, '');
             if (formattedValue.startsWith('0')) {
                 formattedValue = '+62' + formattedValue.substring(1);
             }
@@ -42,16 +35,23 @@ function FormTahapA() {
         }
     };
 
-    const handleSubmitAndContinue = async (e) => {
+    const handleSubmitAndPrint = async (e) => {
         e.preventDefault();
         try {
-            // Frontend sekarang mengirim data dengan nama field yang benar
             const response = await api.post('/submit/tahap-a', formData);
             
             if (response.data.success) {
-                alert('Data berhasil disimpan ke MongoDB!');
+                alert('Data berhasil disimpan! Checklist dan Tanda Terima akan terbuka di tab baru.');
                 const noUrutBaru = response.data.generatedData.noUrut;
-                navigate(`/checklist/${noUrutBaru}`);
+                
+                // Buka halaman checklist interaktif untuk petugas di tab baru
+                window.open(`/checklist/${noUrutBaru}`, '_blank');
+                
+                // Buka halaman Tanda Terima sederhana untuk pemrakarsa di tab baru
+                window.open(`/tanda-terima/${noUrutBaru}`, '_blank');
+                
+                // Reset form agar siap untuk input berikutnya
+                setFormData(initialFormState);
             }
         } catch (error) {
             alert('Gagal menyimpan data. Periksa console backend untuk detail.');
@@ -60,13 +60,12 @@ function FormTahapA() {
     };
 
     return (
-        <form onSubmit={handleSubmitAndContinue}>
+        <form onSubmit={handleSubmitAndPrint}>
             <fieldset>
                 <legend>Data Registrasi Dokumen</legend>
                 <div className="form-grid">
                     <div>
                         <label>Nomor Surat Permohonan</label>
-                        {/* NAMA DAN VALUE DI SINI JUGA DIPERBARUI */}
                         <input name="nomorSuratPermohonan" onChange={handleChange} value={formData.nomorSuratPermohonan} required />
                     </div>
                     <div>
@@ -103,7 +102,6 @@ function FormTahapA() {
                     </div>
                 </div>
             </fieldset>
-
             <fieldset>
                 <legend>Data Kontak</legend>
                 <div className="form-grid">
@@ -125,7 +123,6 @@ function FormTahapA() {
                     </div>
                 </div>
             </fieldset>
-            
             <fieldset>
                 <legend>Data Pengiriman</legend>
                 <div className="form-grid">
@@ -149,8 +146,7 @@ function FormTahapA() {
                     </div>
                 </div>
             </fieldset>
-
-            <button type="submit" className="primary" style={{ marginTop: '1rem' }}>Simpan & Lanjutkan ke Checklist</button>
+            <button type="submit" className="primary" style={{ marginTop: '1rem' }}>Simpan & Cetak</button>
         </form>
     );
 }

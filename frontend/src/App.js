@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage';
 import ChecklistPage from './pages/ChecklistPage';
 import CetakPenerimaanPage from './pages/CetakPenerimaanPage'; // Pastikan ini di-import
 import ArsipPage from './pages/ArsipPage'; // Pastikan ini di-import
+import CetakTandaTerimaPage from './pages/CetakTandaTerimaPage'; // <-- PERUBAHAN 1: IMPORT HALAMAN BARU
 import DaftarArsipPage from './pages/DaftarArsipPage';
 import NotaDinasPage from './pages/NotaDinasPage';
 import SuratKeluarPage from './pages/SuratKeluarPage';
@@ -41,6 +42,10 @@ function App() {
                     path="/arsip/:noUrut"
                     element={<PrivateRoute><ArsipPage /></PrivateRoute>}
                 />
+                <Route 
+                    path="/tanda-terima/:noUrut" 
+                    element={<PrivateRoute><CetakTandaTerimaPage /></PrivateRoute>} 
+                />              
                 <Route 
                     path="/daftar-arsip" 
                     element={<PrivateRoute><DaftarArsipPage /></PrivateRoute>} 
