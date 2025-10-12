@@ -185,12 +185,12 @@ function FormKantorLH() {
             {recordData && (
                 <>
                     <div className="tab-buttons" style={{ marginTop: '2rem' }}>
-                        <button onClick={() => setActiveTab('B')} className={activeTab === 'B' ? 'active' : ''}>Tahap Uji Administrasi</button>
-                        <button onClick={() => setActiveTab('C')} className={activeTab === 'C' ? 'active' : ''}>Tahap Verifikasi Lapangan</button>
-                        <button onClick={() => setActiveTab('D')} className={activeTab === 'D' ? 'active' : ''}>Tahap Pemeriksaan Berkas</button>
-                        <button onClick={() => setActiveTab('E')} className={activeTab === 'E' ? 'active' : ''}>Tahap Pemeriksaan Berkas (Revisi)</button>
-                        <button onClick={() => setActiveTab('G')} className={activeTab === 'G' ? 'active' : ''}>Tahap Risalah Pengolahan Data</button>
-                        <button onClick={() => setActiveTab('Arsip')} className={activeTab === 'Arsip' ? 'active' : ''}>Tahap Pengarsipan</button>
+                        <button onClick={() => setActiveTab('B')} className={activeTab === 'B' ? 'active' : ''}>Uji Administrasi</button>
+                        <button onClick={() => setActiveTab('C')} className={activeTab === 'C' ? 'active' : ''}>Verifikasi Lapangan</button>
+                        <button onClick={() => setActiveTab('D')} className={activeTab === 'D' ? 'active' : ''}>Pemeriksaan Berkas</button>
+                        <button onClick={() => setActiveTab('E')} className={activeTab === 'E' ? 'active' : ''}>Pemeriksaan Berkas (Revisi)</button>
+                        <button onClick={() => setActiveTab('G')} className={activeTab === 'G' ? 'active' : ''}>Risalah Pengolahan Data</button>
+                        <button onClick={() => setActiveTab('Arsip')} className={activeTab === 'Arsip' ? 'active' : ''}>Pengarsipan</button>
                     </div>
                     
                     {renderFormContent()}
