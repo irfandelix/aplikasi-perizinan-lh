@@ -32,7 +32,7 @@ function FormKantorLH() {
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('B');
     
-    // --- STATE DIPERBARUI SEMUA MENJADI camelCase & SESUAI LOGIKA BARU ---
+    // --- NAMA STATE DI SINI DIPERBARUI SEMUA MENJADI camelCase ---
     const [tahapBData, setTahapBData] = useState({ tanggalPenerbitanUa: '' });
     const [tahapCData, setTahapCData] = useState({ tanggalVerifikasi: '' });
     const [tahapDData, setTahapDData] = useState({ tanggalPemeriksaan: '' });
@@ -123,6 +123,7 @@ function FormKantorLH() {
     const renderFormContent = () => {
         if (!recordData) return null;
 
+        // --- KONDISI IF DIPERBAIKI MENJADI HURUF BESAR ---
         if (activeTab === 'B') {
             return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('b', tahapBData); }}> <fieldset><legend>Tahap B: Hasil Uji Administrasi</legend><div><label>Tanggal Penerbitan Uji Administrasi</label><input type="date" value={tahapBData.tanggalPenerbitanUa} onChange={(e) => setTahapBData({ tanggalPenerbitanUa: e.target.value })} required /></div></fieldset> <button type="submit" className="primary">Simpan Tahap B</button> </form> );
         }
