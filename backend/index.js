@@ -74,7 +74,7 @@ app.post('/api/login', (req, res) => {
         res.json({ success: true, role: 'MPP', message: 'Login berhasil sebagai Petugas MPP' });
     } else if (username === process.env.DLH_USER && password === process.env.DLH_PASS) {
         res.json({ success: true, role: 'Kantor LH', message: 'Login berhasil sebagai Kantor LH' });
-        } else if (username === process.env.ARSIP_USER && password === process.env.ARSIP_PASS) {
+    } else if (username === process.env.ARSIP_USER && password === process.env.ARSIP_PASS) {
         res.json({ success: true, role: 'Arsip', message: 'Login berhasil sebagai Arsip' });
     } else {
         res.status(401).json({ success: false, message: 'Username atau password salah' });
@@ -107,11 +107,9 @@ app.get('/api/record/:noUrut', async (req, res) => {
     }
 });
 
-// --- TAMBAHKAN ENDPOINT BARU DI SINI ---
 app.get('/api/rekap/all', async (req, res) => {
     try {
         const db = await connectToDb();
-        // Mengambil semua dokumen, diurutkan berdasarkan noUrut dari kecil ke besar
         const allRecords = await db.collection(COLLECTION_NAME).find({}).sort({ noUrut: 1 }).toArray();
         res.status(200).json({ success: true, data: allRecords });
     } catch (error) {
@@ -120,7 +118,7 @@ app.get('/api/rekap/all', async (req, res) => {
     }
 });
 
-// Endpoint TUNGGAL untuk semua proses simpan/update
+// Endpoint TUNGGAL untuk semua proses simpan/update (SUDAH DIPERBAIKI)
 app.post('/api/submit/:tahap', async (req, res) => {
     const { tahap } = req.params;
     
@@ -128,7 +126,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
         const db = await connectToDb();
         const data = req.body;
         
-        // Logika untuk TAHAP A (Membuat data baru)
+        // --- LOGIKA TAHAP A (MEMBUAT DATA BARU) ---
         if (tahap === 'tahap-a') {
             console.log("[LOG] Memulai proses Tahap A...");
             const lastDoc = await db.collection(COLLECTION_NAME).find().sort({ noUrut: -1 }).limit(1).toArray();
@@ -139,39 +137,48 @@ app.post('/api/submit/:tahap', async (req, res) => {
             const nomorChecklist = `600.4/${formatToThreeDigits(noUrut)}.${tglMasukParts.month}/17/REG.${jenisDokumenSingkat}/${tglMasukParts.year}`;
             
             const newRecord = {
-            ...data,
-            noUrut,
-            nomorChecklist,
-            createdAt: new Date(),
-            // Inisialisasi semua field masa depan dengan string kosong
-            nomorUjiBerkas: "", tanggalUjiBerkas: "",
-            nomorBAVerlap: "", tanggalVerlap: "",
-            nomorBAPemeriksaan: "", tanggalPemeriksaan: "",
-            nomorRevisi1: "", tanggalRevisi1: "",
-            nomorRevisi2: "", tanggalRevisi2: "",
-            nomorRevisi3: "", tanggalRevisi3: "",
-            nomorRevisi4: "", tanggalRevisi4: "",
-            nomorRevisi5: "", tanggalRevisi5: "",
-            nomorPHP: "", tanggalPHP: "",
-            nomorIzinTerbit: "", jenisPerizinan: "", nomorRisalah: "", tanggalRisalah: "",
-            checklistArsip: ""
-        };
+                ...data,
+                noUrut,
+                nomorChecklist,
+                createdAt: new Date(),
+                nomorUjiBerkas: "", tanggalUjiBerkas: "",
+                nomorBAVerlap: "", tanggalVerlap: "",
+                nomorBAPemeriksaan: "", tanggalPemeriksaan: "",
+                nomorRevisi1: "", tanggalRevisi1: "",
+                nomorRevisi2: "", tanggalRevisi2: "",
+                nomorRevisi3: "", tanggalRevisi3: "",
+                nomorRevisi4: "", tanggalRevisi4: "",
+                nomorRevisi5: "", tanggalRevisi5: "",
+                nomorPHP: "", tanggalPHP: "",
+                nomorIzinTerbit: "", jenisPerizinan: "", nomorRisalah: "", tanggalRisalah: "",
+                checklistArsip: ""
+            };
             
-            console.log("[LOG] Data yang akan disimpan:", newRecord);
             const result = await db.collection(COLLECTION_NAME).insertOne(newRecord);
-            console.log("[LOG] Hasil insert:", result);
-
-            if (!result.insertedId) {
-                 throw new Error("MongoDB gagal menyisipkan dokumen.");
-            }
+            if (!result.insertedId) throw new Error("MongoDB gagal menyisipkan dokumen.");
             
             return res.status(200).json({ success: true, message: 'Data berhasil disimpan!', generatedData: { noUrut, nomorChecklist } });
         }
 
-        // Logika untuk SEMUA TAHAP UPDATE (B, C, D, dst.)
-         if (tahap === 'b') {
+        // --- [BAGIAN KRUSIAL] LOGIKA UNTUK SEMUA TAHAP UPDATE (B, C, D, dst.) ---
+        
+        // 1. Ambil noUrut dari request body dan cari dokumennya di DB SEBELUM MELAKUKAN APA PUN
+        const { noUrut } = req.body;
+        if (!noUrut) {
+            return res.status(400).json({ success: false, message: 'Kesalahan: noUrut tidak ditemukan dalam permintaan.' });
+        }
+        
+        const existingData = await db.collection(COLLECTION_NAME).findOne({ noUrut: parseInt(noUrut) });
+        if (!existingData) {
+            return res.status(404).json({ success: false, message: `Dokumen dengan No Urut ${noUrut} tidak ditemukan.` });
+        }
+
+        let updateQuery = {};
+        let generatedNomor = '';
+
+        // 2. Sekarang aman untuk menjalankan logika update sesuai tahap
+        if (tahap === 'b') {
             const { tanggalPenerbitanUa } = req.body;
-            // Jika sudah ada nomor, hanya update tanggal. Jika belum, buat baru.
             if (existingData.nomorUjiBerkas) {
                 updateQuery = { tanggalUjiBerkas: tanggalPenerbitanUa };
                 generatedNomor = existingData.nomorUjiBerkas;
@@ -183,13 +190,12 @@ app.post('/api/submit/:tahap', async (req, res) => {
         } 
         else if (tahap === 'c') {
             const { tanggalVerifikasi } = req.body;
-            // Jika sudah ada nomor, hanya update tanggal.
             if (existingData.nomorBAVerlap) {
                 updateQuery = { tanggalVerlap: tanggalVerifikasi };
                 generatedNomor = existingData.nomorBAVerlap;
-            } else { // Jika belum, buat nomor baru.
+            } else {
                 const tglParts = getDateParts(tanggalVerifikasi);
-                const maxNum = await getGlobalMaxSequentialNumber(tglParts.year);
+                const maxNum = await getGlobalMaxSequentialNumber();
                 const nextSequentialNumber = maxNum + 1;
                 generatedNomor = `600.4.25/${formatToThreeDigits(nextSequentialNumber)}.${tglParts.month}/17/BA.V.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
                 updateQuery = { nomorBAVerlap: generatedNomor, tanggalVerlap: tanggalVerifikasi };
@@ -197,15 +203,14 @@ app.post('/api/submit/:tahap', async (req, res) => {
         }
         else if (tahap === 'd') {
             const { tanggalPemeriksaan } = req.body;
-            // Jika sudah ada nomor, hanya update tanggal.
             if (existingData.nomorBAPemeriksaan) {
                 updateQuery = { tanggalPemeriksaan: tanggalPemeriksaan };
                 generatedNomor = existingData.nomorBAPemeriksaan;
-            } else { // Jika belum, buat nomor baru.
+            } else {
                 const tglParts = getDateParts(tanggalPemeriksaan);
-                const maxNum = await getGlobalMaxSequentialNumber(tglParts.year);
+                const maxNum = await getGlobalMaxSequentialNumber();
                 const nextSequentialNumber = maxNum + 1;
-                generatedNomor = `600.4.25/${formatToThreeDigits(nextSequentialNumber)}.${tglParts.month}/17/BA.P.${getStandardAbbreviation(existingData.jenisDokumen)}/17/${tglParts.year}`;
+                generatedNomor = `600.4.25/${formatToThreeDigits(nextSequentialNumber)}.${tglParts.month}/17/BA.P.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
                 updateQuery = { nomorBAPemeriksaan: generatedNomor, tanggalPemeriksaan: tanggalPemeriksaan };
             }
         }
@@ -216,20 +221,20 @@ app.post('/api/submit/:tahap', async (req, res) => {
             const targetFields = revisionMap[nomorRevisi];
             if (!targetFields) return res.status(400).json({ success: false, message: 'Nomor revisi tidak valid.' });
             const baseNomor = existingData.nomorBAPemeriksaan;
-            const jenisDokumenSingkat = getStandardAbbreviation(existingData.jenisDokumen);
-            const parts = baseNomor.split(`.${jenisDokumenSingkat}/`);
-            if (parts.length !== 2) return res.status(500).json({ success: false, message: 'Format nomor BA Pemeriksaan tidak valid.' });
-            generatedNomor = `${parts[0]}.P${nomorRevisi}.${jenisDokumenSingkat}/${parts[1]}`;
+            const parts = baseNomor.split('/');
+            if (parts.length < 2) return res.status(500).json({ success: false, message: 'Format nomor BA Pemeriksaan tidak valid.' });
+            const baseWithoutYear = parts.slice(0, -1).join('/');
+            const yearPart = parts[parts.length - 1];
+            generatedNomor = `${baseWithoutYear}.P${nomorRevisi}/${yearPart}`;
             updateQuery[targetFields.no] = generatedNomor;
             updateQuery[targetFields.tgl] = tanggalRevisi;
         }
-         else if (tahap === 'f') {
+        else if (tahap === 'f') {
             const { tanggalPHP } = req.body;
             const tglParts = getDateParts(tanggalPHP);
             generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/17/PHP.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
             updateQuery = { nomorPHP: generatedNomor, tanggalPHP: tanggalPHP };
         }
-        // --- LOGIKA TAHAP G DIPERBARUI ---
         else if (tahap === 'g') {
             const { tanggalPembuatanRisalah } = req.body;
             const getIzinAbbreviation = (type) => {
@@ -241,7 +246,6 @@ app.post('/api/submit/:tahap', async (req, res) => {
             generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/RPD.${jenisPerizinanSingkat}/17/${tglParts.year}`;
             updateQuery = { tanggalRisalah: tanggalPembuatanRisalah, nomorRisalah: generatedNomor };
         }
-        // --- LOGIKA TAHAP ARSIP DIPERBARUI ---
         else if (tahap === 'arsip_perizinan') {
             const { checklistArsip, nomorIzinTerbit } = req.body;
             const mapDokumenToIzin = (type) => {
@@ -255,21 +259,20 @@ app.post('/api/submit/:tahap', async (req, res) => {
             return res.status(400).json({ success: false, message: `Tahap '${tahap}' tidak valid.` });
         }
 
-        console.log(`[LOG] Mencoba update Tahap ${tahap.toUpperCase()} dengan query:`, updateQuery);
+        console.log(`[LOG] Mencoba update Tahap ${tahap.toUpperCase()} untuk noUrut ${noUrut} dengan query:`, updateQuery);
         const result = await db.collection(COLLECTION_NAME).updateOne({ noUrut: parseInt(noUrut) }, { $set: updateQuery });
         console.log("[LOG] Hasil update dari MongoDB:", result);
         
         res.status(200).json({ success: true, message: `Data Tahap ${tahap.toUpperCase()} berhasil diperbarui.`, generatedNomor });
 
     } catch (error) {
-        console.error(`Error di Tahap ${tahap.toUpperCase()}:`, error);
+        console.error(`Error di API /submit/${tahap}:`, error);
         res.status(500).json({ success: false, message: 'Terjadi kesalahan di server.' });
     }
 });
 
-// --- ENDPOINT UNTUK FITUR ARSIP DINAMIS ---
 
-// Mengambil semua data Kode Klarifikasi
+// --- ENDPOINT UNTUK FITUR ARSIP DINAMIS ---
 app.get('/api/arsip/kode', async (req, res) => {
     try {
         const db = await connectToDb();
@@ -285,7 +288,6 @@ app.get('/api/arsip/kode', async (req, res) => {
     }
 });
 
-// Mengambil semua data dari koleksi arsip
 app.get('/api/arsip/data', async (req, res) => {
     try {
         const db = await connectToDb();
@@ -298,23 +300,19 @@ app.get('/api/arsip/data', async (req, res) => {
     }
 });
 
-// --- ENDPOINT INI DIPERBARUI TOTAL DENGAN LOGIKA PENOMORAN OTOMATIS ---
 app.post('/api/arsip/data', async (req, res) => {
     try {
         const db = await connectToDb();
         const newArsipData = req.body;
         
-        // 1. Hitung Nomor Berkas (Urutan total)
         const totalBerkas = await db.collection(COLLECTION_ARSIP).countDocuments({});
         newArsipData.nomorBerkas = totalBerkas + 1;
 
-        // 2. Hitung Nomor Item (Urutan per Kode Klarifikasi)
         const totalItemUntukKode = await db.collection(COLLECTION_ARSIP).countDocuments({ 
             kodeKlarifikasi: newArsipData.kodeKlarifikasi 
         });
         newArsipData.nomorItem = totalItemUntukKode + 1;
 
-        // Tambahkan tanggal pembuatan
         newArsipData.createdAt = new Date();
 
         await db.collection(COLLECTION_ARSIP).insertOne(newArsipData);
@@ -330,4 +328,3 @@ app.listen(PORT, () => {
     console.log(`Server API backend berjalan di http://localhost:${PORT}`);
     connectToDb();
 });
-
