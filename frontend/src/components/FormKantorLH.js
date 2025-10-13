@@ -125,19 +125,19 @@ function FormKantorLH() {
         if (!recordData) return null;
 
         // --- KONDISI IF DIPERBAIKI MENJADI HURUF BESAR ---
-        if (activeTab === 'B') {
+        if (activeTab === 'b') {
             return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('b', tahapBData); }}> <fieldset><legend>Tahap B: Hasil Uji Administrasi</legend><div><label>Tanggal Penerbitan Uji Administrasi</label><input type="date" value={tahapBData.tanggalPenerbitanUa} onChange={(e) => setTahapBData({ tanggalPenerbitanUa: e.target.value })} required /></div></fieldset> <button type="submit" className="primary">Simpan Tahap B</button> </form> );
         }
-        if (activeTab === 'C') {
+        if (activeTab === 'c') {
             return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('c', tahapCData); }}> <fieldset><legend>Tahap C: Verifikasi Lapangan</legend><div><label>Tanggal Verifikasi Lapangan</label><input type="date" value={tahapCData.tanggalVerifikasi} onChange={(e) => setTahapCData({ tanggalVerifikasi: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap C</button> </form> );
         }
-        if (activeTab === 'D') {
+        if (activeTab === 'd') {
             return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('d', tahapDData); }}> <fieldset><legend>Tahap D: Pemeriksaan Berkas</legend><div><label>Tanggal Pemeriksaan Berkas</label><input type="date" value={tahapDData.tanggalPemeriksaan} onChange={(e) => setTahapDData({ tanggalPemeriksaan: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap D</button> </form> );
         }
-        if (activeTab === 'E') {
+        if (activeTab === 'e') {
             return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('e', tahapEData); }}> <fieldset> <legend>Tahap E: Pemeriksaan Revisi</legend> <div className="form-grid"> <div> <label>Pilih Revisi</label> <select name="nomorRevisi" value={tahapEData.nomorRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, nomorRevisi: e.target.value }))}> <option value="1">Revisi 1</option> <option value="2">Revisi 2</option> <option value="3">Revisi 3</option> <option value="4">Revisi 4</option> <option value="5">Revisi 5</option> </select> </div> <div> <label>Tanggal Pemeriksaan Revisi</label> <input type="date" name="tanggalRevisi" value={tahapEData.tanggalRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, tanggalRevisi: e.target.value }))} required /> </div> </div> </fieldset> <button type="submit" className="primary">Simpan Revisi</button> </form> );
         }
-        if (activeTab === 'G') {
+        if (activeTab === 'g') {
             return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('g', tahapGData); }}> <fieldset><legend>Tahap G: Risalah Pengolahan Data</legend><div> <label>Tanggal Pembuatan Risalah</label> <input type="date" value={tahapGData.tanggalPembuatanRisalah} onChange={(e) => setTahapGData({ tanggalPembuatanRisalah: e.target.value })} required /> </div> </fieldset> <button type="submit" className="primary">Simpan Tanggal Risalah</button> </form> );
         }
         if (activeTab === 'Arsip') {
