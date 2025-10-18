@@ -214,18 +214,25 @@ app.post('/api/submit/:tahap', async (req, res) => {
                 updateQuery = { nomorBAPemeriksaan: generatedNomor, tanggalPemeriksaan: tanggalPemeriksaan };
             }
         }
+                // --- LOGIKA TAHAP E DIPERBARUI DI SINI ---
         else if (tahap === 'e') {
             const { tanggalRevisi, nomorRevisi } = req.body;
             if (!existingData.nomorBAPemeriksaan) return res.status(400).json({ success: false, message: 'Gagal: Tahap D harus diisi terlebih dahulu.' });
+            
             const revisionMap = { '1': { no: 'nomorRevisi1', tgl: 'tanggalRevisi1' }, '2': { no: 'nomorRevisi2', tgl: 'tanggalRevisi2' }, '3': { no: 'nomorRevisi3', tgl: 'tanggalRevisi3' }, '4': { no: 'nomorRevisi4', tgl: 'tanggalRevisi4' }, '5': { no: 'nomorRevisi5', tgl: 'tanggalRevisi5' } };
             const targetFields = revisionMap[nomorRevisi];
             if (!targetFields) return res.status(400).json({ success: false, message: 'Nomor revisi tidak valid.' });
+
             const baseNomor = existingData.nomorBAPemeriksaan;
-            const parts = baseNomor.split('/');
-            if (parts.length < 2) return res.status(500).json({ success: false, message: 'Format nomor BA Pemeriksaan tidak valid.' });
-            const baseWithoutYear = parts.slice(0, -1).join('/');
-            const yearPart = parts[parts.length - 1];
-            generatedNomor = `${baseWithoutYear}.P${nomorRevisi}/${yearPart}`;
+            const jenisDokumenSingkat = getStandardAbbreviation(existingData.jenisDokumen);
+            
+            // Memecah string berdasarkan singkatan jenis dokumen
+            const parts = baseNomor.split(`.${jenisDokumenSingkat}/`);
+            if (parts.length !== 2) return res.status(500).json({ success: false, message: 'Format nomor BA Pemeriksaan tidak valid untuk membuat nomor revisi.' });
+            
+            // Menyisipkan ".P[nomor_revisi]" di antara dua bagian
+            generatedNomor = `${parts[0]}.P${nomorRevisi}.${jenisDokumenSingkat}/${parts[1]}`;
+            
             updateQuery[targetFields.no] = generatedNomor;
             updateQuery[targetFields.tgl] = tanggalRevisi;
         }
