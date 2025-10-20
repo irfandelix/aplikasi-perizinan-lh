@@ -20,7 +20,7 @@ body {
     background-color: var(--light-gray);
     color: var(--text-color);
     margin: 0;
-    background-image: url('/frontend/public/background.png');
+    background-image: url('/background.png');
     background-size: cover; /* Ini yang paling penting: membuat gambar menutupi seluruh layar tanpa merusak rasio aspek */
     background-position: center center; /* Menjaga agar bagian tengah gambar selalu terlihat */
     background-repeat: no-repeat;
