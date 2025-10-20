@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import backgroundImage from './background.png'; 
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ChecklistPage from './pages/ChecklistPage';
@@ -19,6 +20,15 @@ const PrivateRoute = ({ children }) => {
 };
 
 function App() {
+    // --- BUAT STYLE OBJECT UNTUK LATAR BELAKANG ---
+    const appStyle = {
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center center',
+        backgroundAttachment: 'fixed',
+        minHeight: '100vh',
+    };
+
     return (
         <Router>
             <Routes>
