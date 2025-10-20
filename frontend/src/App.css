@@ -20,11 +20,13 @@ body {
     background-color: var(--light-gray);
     color: var(--text-color);
     margin: 0;
-    background-image: url('/background.png');
-    background-size: cover; /* Ini yang paling penting: membuat gambar menutupi seluruh layar tanpa merusak rasio aspek */
-    background-position: center center; /* Menjaga agar bagian tengah gambar selalu terlihat */
+    /* --- PERUBAHAN DI SINI --- */
+    background-image: url('%PUBLIC_URL%/background.png');
+    background-size: cover;
+    background-position: center center;
     background-repeat: no-repeat;
-    background-attachment: fixed; /* Membuat gambar tetap diam saat halaman di-scroll */
+    background-attachment: fixed;
+    min-height: 100vh;
 }
 
 .container {
