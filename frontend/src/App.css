@@ -20,6 +20,11 @@ body {
     background-color: var(--light-gray);
     color: var(--text-color);
     margin: 0;
+    background-image: url('/frontend/public/Artboard\ 1.png');
+    background-size: cover; /* Ini yang paling penting: membuat gambar menutupi seluruh layar tanpa merusak rasio aspek */
+    background-position: center center; /* Menjaga agar bagian tengah gambar selalu terlihat */
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* Membuat gambar tetap diam saat halaman di-scroll */
 }
 
 .container {
