@@ -177,7 +177,12 @@ button.danger:hover {
 /* -- STYLE BARU UNTUK HALAMAN LOGIN MODERN -- */
 
 .modern-login-wrapper {
-    background: linear-gradient(160deg, #e0f7fa 0%, #b2ebf2 100%); /* Gradien biru muda */
+    background: url(background.png);
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
