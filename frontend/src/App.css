@@ -21,7 +21,7 @@ body {
     color: var(--text-color);
     margin: 0;
     /* --- PERUBAHAN DI SINI --- */
-    background-image: url('%PUBLIC_URL%/background.png');
+    background-image: url('background.png');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
