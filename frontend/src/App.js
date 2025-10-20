@@ -30,6 +30,7 @@ function App() {
     };
 
     return (
+        <div style={appStyle}>
         <Router>
             <Routes>
                 {/* Rute untuk Halaman Login (Publik) */}
@@ -73,6 +74,7 @@ function App() {
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>
         </Router>
+        </div>
     );
 }
 
