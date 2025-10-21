@@ -119,7 +119,6 @@ app.get('/api/rekap/all', async (req, res) => {
 });
 
 // --- ENDPOINT UNTUK DASHBOARD SUMMARY DIPERBARUI TOTAL ---
-// --- ENDPOINT UNTUK DASHBOARD SUMMARY DIPERBARUI TOTAL ---
 app.get('/api/dashboard/summary', async (req, res) => {
     try {
         const db = await connectToDb();
@@ -139,7 +138,11 @@ app.get('/api/dashboard/summary', async (req, res) => {
                                         $cond: {
                                             if: { $eq: [{ $type: "$$dateField" }, "date"] },
                                             then: { $year: "$$dateField" },
-                                            else: { $toInt: { $substr: ["$$dateField", 0, 4] } }
+                                            else: { 
+                                                $toInt: { 
+                                                    $substr: ["$$dateField", 0, 4] 
+                                                }
+                                            }
                                         }
                                     },
                                     else: null
@@ -171,7 +174,7 @@ app.get('/api/dashboard/summary', async (req, res) => {
 
         const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
         
-        if (results.length === 0 || !results[0]) {
+        if (results.length === 0 || !results[0] || results[0].totalMasuk.length === 0) {
             const summary = { totalMasuk: 0, totalUjiAdmin: 0, totalVerlap: 0, totalPemeriksaan: 0, totalPerbaikan: 0, totalRPD: 0, totalArsip: 0 };
             return res.status(200).json({ success: true, data: summary });
         }
