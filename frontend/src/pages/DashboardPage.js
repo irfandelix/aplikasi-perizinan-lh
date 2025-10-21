@@ -69,13 +69,12 @@ function DashboardPage() {
     // Tampilan untuk role Kantor LH
     const renderDLHForms = () => (
         <div>
-            {renderSummarySection()} {/* <-- PERBAIKAN DI SINI */}
             <div className="tab-buttons">
                 <button onClick={() => setActiveTab('Summary')} className={activeTab === 'Summary' ? 'active' : ''}>Ringkasan Data</button>
                 <button onClick={() => setActiveTab('Update')} className={activeTab === 'Update' ? 'active' : ''}>Update Dokumen</button>
                 <button onClick={() => setActiveTab('Rekap')} className={activeTab === 'Rekap' ? 'active' : ''}>Rekap Data</button>
             </div>
-            {activeTab === 'Summary' && <SummaryDashboard />}
+            {activeTab === 'Summary' && renderSummarySection()}
             {activeTab === 'Update' && <FormKantorLH />}
             {activeTab === 'Rekap' && <RekapTabel />}
         </div>
