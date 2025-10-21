@@ -69,6 +69,7 @@ function DashboardPage() {
     // Tampilan untuk role Kantor LH
     const renderDLHForms = () => (
         <div>
+            {renderSummarySection()} {/* <-- PERBAIKAN DI SINI */}
             <div className="tab-buttons">
                 <button onClick={() => setActiveTab('Summary')} className={activeTab === 'Summary' ? 'active' : ''}>Ringkasan Data</button>
                 <button onClick={() => setActiveTab('Update')} className={activeTab === 'Update' ? 'active' : ''}>Update Dokumen</button>
