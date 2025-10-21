@@ -149,7 +149,7 @@ function FormKantorLH() {
                         <div className="form-grid-full" style={{marginBottom: '1.5rem'}}>
                             <label>Nomor Izin Terbit (SPPL/PKPLH/SKKL)</label>
                             <input type="text" name="nomorIzinTerbit" value={arsipData.nomorIzinTerbit} onChange={handleArsipChange} />
-                        </div>
+                        </div> 
                         <table className="record-table">
                            <thead><tr><th style={{width:'5%'}}>No</th><th>Dokumen</th><th style={{width:'15%'}}>Checklist</th></tr></thead>
                            <tbody>

@@ -8,7 +8,7 @@ import CetakUlang from '../components/CetakUlang';
 import DaftarArsipPage from './DaftarArsipPage';
 import NotaDinasPage from './NotaDinasPage';
 import SuratKeluarPage from './SuratKeluarPage';
-import SummaryDashboard from '../components/SummaryDashboard';
+// import SummaryDashboard from '../components/SummaryDashboard';
 import SummaryByTypeDashboard from '../components/SummaryByTypeDashboard';
 
 
