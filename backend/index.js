@@ -149,7 +149,11 @@ app.get('/api/dashboard/summary', async (req, res) => {
 
         const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
 
-        // Mengambil hasil dari agregasi
+        if (results.length === 0 || !results[0]) {
+            const summary = { totalMasuk: 0, totalUjiAdmin: 0, totalVerlap: 0, totalPemeriksaan: 0, totalPerbaikan: 0, totalRPD: 0, totalArsip: 0 };
+            return res.status(200).json({ success: true, data: summary });
+        }
+
         const summaryData = results[0];
         const summary = {
             totalMasuk: summaryData.totalMasuk[0]?.count || 0,
@@ -166,23 +170,7 @@ app.get('/api/dashboard/summary', async (req, res) => {
         console.error("Error di /api/dashboard/summary:", error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data summary.' });
     }
-});
-
-app.get('/api/dashboard/summary/by-type', async (req, res) => {
-    try {
-        const db = await connectToDb();
-        const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
-        const pipeline = [
-            { $match: { createdAt: { $gte: new Date(`${year}-01-01T00:00:00.000Z`), $lt: new Date(`${year + 1}-01-01T00:00:00.000Z`) } } },
-            { $group: { _id: "$jenisDokumen", count: { $sum: 1 } } },
-            { $sort: { _id: 1 } }
-        ];
-        const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
-        res.status(200).json({ success: true, data: results });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Gagal mengambil data summary per jenis.' });
-    }
-});
+}); 
 
 // Endpoint TUNGGAL untuk semua proses simpan/update (SUDAH DIPERBAIKI)
 app.post('/api/submit/:tahap', async (req, res) => {
