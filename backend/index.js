@@ -124,12 +124,9 @@ app.get('/api/dashboard/summary', async (req, res) => {
         const db = await connectToDb();
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
 
-        // Filter utama: hanya ambil dokumen yang dibuat pada tahun yang dipilih
+        // Filter utama: hanya ambil dokumen berdasarkan tahun pada tanggal masuk dokumen
         const yearFilter = {
-            createdAt: {
-                $gte: new Date(`${year}-01-01T00:00:00.000Z`),
-                $lt: new Date(`${year + 1}-01-01T00:00:00.000Z`)
-            }
+            tanggalMasukDokumen: { $regex: `^${year}-` }
         };
 
         // $facet memungkinkan kita menjalankan beberapa pipeline agregasi terpisah dalam satu query
