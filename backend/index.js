@@ -124,75 +124,44 @@ app.get('/api/dashboard/summary', async (req, res) => {
         const db = await connectToDb();
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
 
-        const pipeline = [
-            {
-                // Tahap 1: Buat field baru 'docYear' untuk menstandarkan tahun dari berbagai format
-                $addFields: {
-                    docYear: {
-                        $let: {
-                            vars: { dateField: "$tanggalMasukDokumen" },
-                            in: {
-                                $cond: {
-                                    if: { $and: [ { $ne: ["$$dateField", null] }, { $ne: ["$$dateField", ""] } ] },
-                                    then: {
-                                        $cond: {
-                                            if: { $eq: [{ $type: "$$dateField" }, "date"] },
-                                            then: { $year: "$$dateField" }, // Jika formatnya sudah Date
-                                            else: { // Jika formatnya String
-                                                $cond: {
-                                                    if: { $regexMatch: { input: "$$dateField", regex: /^\d{4}-/ } },
-                                                    // Jika formatnya 'YYYY-MM-DD', ambil 4 karakter pertama
-                                                    then: { $convert: { input: { $substrCP: ["$$dateField", 0, 4] }, to: "int", onError: null, onNull: null } },
-                                                    // Jika formatnya 'D/M/YYYY', pecah dan ambil bagian terakhir
-                                                    else: { $convert: { input: { $arrayElemAt: [{ $split: ["$$dateField", "/"] }, -1] }, to: "int", onError: null, onNull: null } }
-                                                }
-                                            }
-                                        }
-                                    },
-                                    else: null // Jika field kosong atau tidak ada
-                                }
-                            }
-                        }
-                    }
+        // 1. Ambil semua dokumen. Ini lebih aman daripada agregasi kompleks.
+        const allDocs = await db.collection(COLLECTION_DOKUMEN).find({}).toArray();
+
+        // 2. Filter di JavaScript, yang lebih fleksibel menangani format berbeda.
+        const filteredDocs = allDocs.filter(doc => {
+            if (!doc.tanggalMasukDokumen) return false;
+            
+            try {
+                // Handle format YYYY-MM-DD (dari aplikasi)
+                if (typeof doc.tanggalMasukDokumen === 'string' && doc.tanggalMasukDokumen.includes('-')) {
+                    return new Date(doc.tanggalMasukDokumen).getFullYear() === year;
                 }
-            },
-            {
-                // Tahap 2: Filter berdasarkan 'docYear' yang sudah standar
-                $match: {
-                    docYear: year
+                // Handle format D/M/YYYY (dari data impor)
+                if (typeof doc.tanggalMasukDokumen === 'string' && doc.tanggalMasukDokumen.includes('/')) {
+                    const parts = doc.tanggalMasukDokumen.split('/');
+                    const docYear = parseInt(parts[2], 10);
+                    return docYear === year;
                 }
-            },
-            {
-                // Tahap 3: Hitung semua statistik
-                $facet: {
-                    "totalMasuk": [{ $count: "count" }],
-                    "totalUjiAdmin": [{ $match: { nomorUjiBerkas: { $ne: "" } } }, { $count: "count" }],
-                    "totalVerlap": [{ $match: { nomorBAVerlap: { $ne: "" } } }, { $count: "count" }],
-                    "totalPemeriksaan": [{ $match: { nomorBAPemeriksaan: { $ne: "" } } }, { $count: "count" }],
-                    "totalPerbaikan": [{ $match: { nomorPHP: { $ne: "" } } }, { $count: "count" }],
-                    "totalRPD": [{ $match: { nomorRisalah: { $ne: "" } } }, { $count: "count" }],
-                    "totalArsip": [{ $match: { checklistArsip: { $ne: "" } } }, { $count: "count" }]
+                // Handle format Date Object (jika ada)
+                if (doc.tanggalMasukDokumen instanceof Date) {
+                    return doc.tanggalMasukDokumen.getFullYear() === year;
                 }
+            } catch (e) {
+                // Jika ada error saat parsing tanggal, abaikan dokumen ini.
+                return false;
             }
-        ];
+            return false;
+        });
 
-        const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
-        
-        // Menangani kasus jika tidak ada data sama sekali di tahun yang dipilih
-        if (results.length === 0 || !results[0] || results[0].totalMasuk.length === 0) {
-            const summary = { totalMasuk: 0, totalUjiAdmin: 0, totalVerlap: 0, totalPemeriksaan: 0, totalPerbaikan: 0, totalRPD: 0, totalArsip: 0 };
-            return res.status(200).json({ success: true, data: summary });
-        }
-
-        const summaryData = results[0];
+        // 3. Hitung statistik berdasarkan data yang sudah difilter dengan aman.
         const summary = {
-            totalMasuk: summaryData.totalMasuk[0]?.count || 0,
-            totalUjiAdmin: summaryData.totalUjiAdmin[0]?.count || 0,
-            totalVerlap: summaryData.totalVerlap[0]?.count || 0,
-            totalPemeriksaan: summaryData.totalPemeriksaan[0]?.count || 0,
-            totalPerbaikan: summaryData.totalPerbaikan[0]?.count || 0,
-            totalRPD: summaryData.totalRPD[0]?.count || 0,
-            totalArsip: summaryData.totalArsip[0]?.count || 0,
+            totalMasuk: filteredDocs.length,
+            totalUjiAdmin: filteredDocs.filter(d => d.nomorUjiBerkas && d.nomorUjiBerkas !== "").length,
+            totalVerlap: filteredDocs.filter(d => d.nomorBAVerlap && d.nomorBAVerlap !== "").length,
+            totalPemeriksaan: filteredDocs.filter(d => d.nomorBAPemeriksaan && d.nomorBAPemeriksaan !== "").length,
+            totalPerbaikan: filteredDocs.filter(d => d.nomorPHP && d.nomorPHP !== "").length,
+            totalRPD: filteredDocs.filter(d => d.nomorRisalah && d.nomorRisalah !== "").length,
+            totalArsip: filteredDocs.filter(d => d.checklistArsip && d.checklistArsip !== "").length,
         };
         
         res.status(200).json({ success: true, data: summary });
