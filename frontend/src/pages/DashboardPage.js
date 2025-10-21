@@ -9,8 +9,7 @@ import DaftarArsipPage from './DaftarArsipPage';
 import NotaDinasPage from './NotaDinasPage';
 import SuratKeluarPage from './SuratKeluarPage';
 import SummaryDashboard from '../components/SummaryDashboard';
-import SummaryByTypeDashboard from '../components/SummaryByTypeDashboard'; // Pastikan import ini ada
-import PelacakanDokumen from '../components/PelacakanDokumen';
+
 
 // --- GAYA BARU DITAMBAHKAN DI SINI ---
 // Gaya ini akan mengubah warna tombol dengan class "secondary" saat disentuh mouse
@@ -47,12 +46,7 @@ function DashboardPage() {
     const renderSummarySection = () => (
         <div style={{ marginBottom: '2.5rem' }}>
             {/* Kirim 'selectedYear' dan 'setSelectedYear' sebagai props */}
-            <SummaryDashboard selectedYear={selectedYear} setSelectedYear={setSelectedYear} />
-            
-            <div style={{ marginTop: '1.5rem' }}>
-                {/* Kirim 'selectedYear' sebagai prop */}
-                <SummaryByTypeDashboard selectedYear={selectedYear} />
-            </div>
+            <SummaryDashboard selectedYear={selectedYear} setSelectedYear={setSelectedYear} />        
         </div>
     );
 
