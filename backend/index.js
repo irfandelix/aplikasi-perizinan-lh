@@ -171,25 +171,31 @@ app.get('/api/dashboard/summary', async (req, res) => {
     }
 });
 
-// --- ENDPOINT BARU UNTUK SUMMARY BERDASARKAN JENIS DOKUMEN ---
+// --- ENDPOINT SUMMARY PER JENIS ---
 app.get('/api/dashboard/summary/by-type', async (req, res) => {
     try {
         const db = await connectToDb();
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
-
+        
         const allDocs = await db.collection(COLLECTION_DOKUMEN).find({}).toArray();
 
         const docsInYear = allDocs.filter(doc => {
             if (!doc.tanggalMasukDokumen) return false;
             let docYear = null;
             try {
-                if (typeof doc.tanggalMasukDokumen === 'string' && doc.tanggalMasukDokumen.includes('-')) {
-                    docYear = new Date(doc.tanggalMasukDokumen).getFullYear();
-                } else if (typeof doc.tanggalMasukDokumen === 'string' && doc.tanggalMasukDokumen.includes('/')) {
-                    const parts = doc.tanggalMasukDokumen.split('/');
-                    if (parts.length === 3) docYear = parseInt(parts[2], 10);
-                } else if (doc.tanggalMasukDokumen instanceof Date) {
+                if (doc.tanggalMasukDokumen instanceof Date) {
                     docYear = doc.tanggalMasukDokumen.getFullYear();
+                } else if (typeof doc.tanggalMasukDokumen === 'string') {
+                    if (doc.tanggalMasukDokumen.includes('-')) {
+                        const yearPart = doc.tanggalMasukDokumen.substring(0, 4);
+                        if (!isNaN(parseInt(yearPart))) docYear = parseInt(yearPart, 10);
+                    } else if (doc.tanggalMasukDokumen.includes('/')) {
+                        const parts = doc.tanggalMasukDokumen.split('/');
+                        if (parts.length === 3) {
+                            const yearPart = parts[2];
+                            if (!isNaN(parseInt(yearPart))) docYear = parseInt(yearPart, 10);
+                        }
+                    }
                 }
             } catch (e) { return false; }
             return docYear === year;
@@ -197,7 +203,7 @@ app.get('/api/dashboard/summary/by-type', async (req, res) => {
 
         const summaryByType = docsInYear.reduce((acc, doc) => {
             const docType = doc.jenisDokumen;
-            if (docType) {
+            if (docType && typeof docType === 'string' && docType.trim() !== '') {
                 acc[docType] = (acc[docType] || 0) + 1;
             }
             return acc;
@@ -210,6 +216,7 @@ app.get('/api/dashboard/summary/by-type', async (req, res) => {
         
         res.status(200).json({ success: true, data: results });
     } catch (error) {
+        console.error("Error di /api/dashboard/summary/by-type:", error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data summary per jenis.' });
     }
 });
