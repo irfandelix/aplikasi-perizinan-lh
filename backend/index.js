@@ -330,6 +330,42 @@ app.post('/api/arsip/data', async (req, res) => {
     }
 });
 
+app.get('/api/dashboard/summary/by-type', async (req, res) => {
+    try {
+        const db = await connectToDb();
+        const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
+
+        const pipeline = [
+            {
+                $match: {
+                    createdAt: {
+                        $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                        $lt: new Date(`${year + 1}-01-01T00:00:00.000Z`)
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$jenisDokumen", // Kelompokkan berdasarkan jenis dokumen
+                    count: { $sum: 1 }    // Hitung jumlahnya
+                }
+            },
+            {
+                $sort: {
+                    _id: 1 // Urutkan berdasarkan nama jenis dokumen
+                }
+            }
+        ];
+
+        const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
+        res.status(200).json({ success: true, data: results });
+
+    } catch (error) {
+        console.error("Error di /api/dashboard/summary/by-type:", error);
+        res.status(500).json({ success: false, message: 'Gagal mengambil data summary per jenis.' });
+    }
+});
+
 // Server listener
 app.listen(PORT, () => {
     console.log(`Server API backend berjalan di http://localhost:${PORT}`);
