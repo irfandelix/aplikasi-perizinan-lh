@@ -171,13 +171,16 @@ app.get('/api/dashboard/summary', async (req, res) => {
     }
 });
 
+// --- ENDPOINT BARU UNTUK SUMMARY BERDASARKAN JENIS DOKUMEN ---
 app.get('/api/dashboard/summary/by-type', async (req, res) => {
     try {
         const db = await connectToDb();
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
-        
+
+        // Mengambil semua dokumen untuk difilter di JavaScript
         const allDocs = await db.collection(COLLECTION_DOKUMEN).find({}).toArray();
 
+        // Filter dokumen berdasarkan tahun di JavaScript
         const docsInYear = allDocs.filter(doc => {
             if (!doc.tanggalMasukDokumen) return false;
             try {
@@ -197,6 +200,7 @@ app.get('/api/dashboard/summary/by-type', async (req, res) => {
             return false;
         });
 
+        // Hitung jumlah untuk setiap jenis dokumen
         const summaryByType = docsInYear.reduce((acc, doc) => {
             const docType = doc.jenisDokumen;
             if (docType) {
