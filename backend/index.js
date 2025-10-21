@@ -118,101 +118,42 @@ app.get('/api/rekap/all', async (req, res) => {
     }
 });
 
-// --- ENDPOINT UNTUK DASHBOARD SUMMARY DIPERBARUI TOTAL ---
+// --- ENDPOINT UNTUK DASHBOARD SUMMARY (DISEDERHANAKAN) ---
 app.get('/api/dashboard/summary', async (req, res) => {
     try {
         const db = await connectToDb();
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
 
-        // 1. Ambil semua dokumen. Ini lebih aman daripada agregasi kompleks.
-        const allDocs = await db.collection(COLLECTION_DOKUMEN).find({}).toArray();
+        // Filter sederhana berdasarkan teks 'YYYY-' di awal string
+        const yearFilter = { tanggalMasukDokumen: { $regex: `^${year}-` } };
 
-        // 2. Filter di JavaScript, yang lebih fleksibel menangani format berbeda.
-        const filteredDocs = allDocs.filter(doc => {
-            if (!doc.tanggalMasukDokumen) return false;
-            
-            try {
-                // Handle format YYYY-MM-DD (dari aplikasi)
-                if (typeof doc.tanggalMasukDokumen === 'string' && doc.tanggalMasukDokumen.includes('-')) {
-                    return new Date(doc.tanggalMasukDokumen).getFullYear() === year;
-                }
-                // Handle format D/M/YYYY (dari data impor)
-                if (typeof doc.tanggalMasukDokumen === 'string' && doc.tanggalMasukDokumen.includes('/')) {
-                    const parts = doc.tanggalMasukDokumen.split('/');
-                    const docYear = parseInt(parts[2], 10);
-                    return docYear === year;
-                }
-                // Handle format Date Object (jika ada)
-                if (doc.tanggalMasukDokumen instanceof Date) {
-                    return doc.tanggalMasukDokumen.getFullYear() === year;
-                }
-            } catch (e) {
-                // Jika ada error saat parsing tanggal, abaikan dokumen ini.
-                return false;
-            }
-            return false;
-        });
-
-        // 3. Hitung statistik berdasarkan data yang sudah difilter dengan aman.
-        const summary = {
-            totalMasuk: filteredDocs.length,
-            totalUjiAdmin: filteredDocs.filter(d => d.nomorUjiBerkas && d.nomorUjiBerkas !== "").length,
-            totalVerlap: filteredDocs.filter(d => d.nomorBAVerlap && d.nomorBAVerlap !== "").length,
-            totalPemeriksaan: filteredDocs.filter(d => d.nomorBAPemeriksaan && d.nomorBAPemeriksaan !== "").length,
-            totalPerbaikan: filteredDocs.filter(d => d.nomorPHP && d.nomorPHP !== "").length,
-            totalRPD: filteredDocs.filter(d => d.nomorRisalah && d.nomorRisalah !== "").length,
-            totalArsip: filteredDocs.filter(d => d.checklistArsip && d.checklistArsip !== "").length,
-        };
+        const totalMasuk = await db.collection(COLLECTION_DOKUMEN).countDocuments(yearFilter);
         
-        res.status(200).json({ success: true, data: summary });
+        res.status(200).json({ success: true, data: { totalMasuk } });
     } catch (error) {
         console.error("Error di /api/dashboard/summary:", error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data summary.' });
     }
 });
 
-// --- ENDPOINT SUMMARY PER JENIS ---
+// --- ENDPOINT SUMMARY PER JENIS (DISEDERHANAKAN) ---
 app.get('/api/dashboard/summary/by-type', async (req, res) => {
     try {
         const db = await connectToDb();
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
         
-        const allDocs = await db.collection(COLLECTION_DOKUMEN).find({}).toArray();
+        const pipeline = [
+            { $match: { tanggalMasukDokumen: { $regex: `^${year}-` } } },
+            { 
+                $group: { 
+                    _id: "$jenisDokumen", 
+                    count: { $sum: 1 } 
+                } 
+            },
+            { $sort: { _id: 1 } }
+        ];
 
-        const docsInYear = allDocs.filter(doc => {
-            if (!doc.tanggalMasukDokumen) return false;
-            let docYear = null;
-            try {
-                if (doc.tanggalMasukDokumen instanceof Date) {
-                    docYear = doc.tanggalMasukDokumen.getFullYear();
-                } else if (typeof doc.tanggalMasukDokumen === 'string') {
-                    if (doc.tanggalMasukDokumen.includes('-')) {
-                        const yearPart = doc.tanggalMasukDokumen.substring(0, 4);
-                        if (!isNaN(parseInt(yearPart))) docYear = parseInt(yearPart, 10);
-                    } else if (doc.tanggalMasukDokumen.includes('/')) {
-                        const parts = doc.tanggalMasukDokumen.split('/');
-                        if (parts.length === 3) {
-                            const yearPart = parts[2];
-                            if (!isNaN(parseInt(yearPart))) docYear = parseInt(yearPart, 10);
-                        }
-                    }
-                }
-            } catch (e) { return false; }
-            return docYear === year;
-        });
-
-        const summaryByType = docsInYear.reduce((acc, doc) => {
-            const docType = doc.jenisDokumen;
-            if (docType && typeof docType === 'string' && docType.trim() !== '') {
-                acc[docType] = (acc[docType] || 0) + 1;
-            }
-            return acc;
-        }, {});
-
-        const results = Object.keys(summaryByType).map(key => ({
-            _id: key,
-            count: summaryByType[key]
-        })).sort((a, b) => a._id.localeCompare(b._id));
+        const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
         
         res.status(200).json({ success: true, data: results });
     } catch (error) {
