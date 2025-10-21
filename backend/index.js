@@ -123,35 +123,45 @@ app.get('/api/dashboard/summary', async (req, res) => {
         const db = await connectToDb();
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
 
-        // Membuat filter tahun yang lebih fleksibel
-        // Ia akan mencoba memfilter berdasarkan 'createdAt' jika ada, 
-        // atau mengambil semua data jika tidak ada filter tahun yang spesifik.
+        // Filter utama berdasarkan tahun pembuatan dokumen
         const yearFilter = {
-            $gte: new Date(`${year}-01-01T00:00:00.000Z`),
-            $lt: new Date(`${year + 1}-01-01T00:00:00.000Z`)
-        };
-
-        // Fungsi helper baru untuk membuat query yang lebih kuat
-        const countQuery = (field) => {
-            const query = { [field]: { $exists: true, $ne: "" } };
-            // Hanya tambahkan filter tahun jika field 'createdAt' ada
-            if (field !== 'createdAt') {
-                query.createdAt = yearFilter;
+            createdAt: {
+                $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                $lt: new Date(`${year + 1}-01-01T00:00:00.000Z`)
             }
-            return query;
         };
 
-        const [ totalMasuk, totalUjiAdmin, totalVerlap, totalPemeriksaan, totalPerbaikan, totalRPD, totalArsip ] = await Promise.all([
-            db.collection(COLLECTION_DOKUMEN).countDocuments({ createdAt: yearFilter }),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(countQuery('nomorUjiBerkas')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(countQuery('nomorBAVerlap')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(countQuery('nomorBAPemeriksaan')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(countQuery('nomorPHP')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(countQuery('nomorRisalah')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(countQuery('checklistArsip'))
-        ]);
+        // Menggunakan $facet untuk menjalankan beberapa perhitungan agregasi dalam satu query
+        const pipeline = [
+            { $match: yearFilter },
+            {
+                $facet: {
+                    "totalMasuk": [{ $count: "count" }],
+                    "totalUjiAdmin": [{ $match: { nomorUjiBerkas: { $ne: "" } } }, { $count: "count" }],
+                    "totalVerlap": [{ $match: { nomorBAVerlap: { $ne: "" } } }, { $count: "count" }],
+                    "totalPemeriksaan": [{ $match: { nomorBAPemeriksaan: { $ne: "" } } }, { $count: "count" }],
+                    "totalPerbaikan": [{ $match: { nomorPHP: { $ne: "" } } }, { $count: "count" }],
+                    "totalRPD": [{ $match: { nomorRisalah: { $ne: "" } } }, { $count: "count" }],
+                    "totalArsip": [{ $match: { checklistArsip: { $ne: "" } } }, { $count: "count" }]
+                }
+            }
+        ];
+
+        const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
+
+        // Mengambil hasil dari agregasi
+        const summaryData = results[0];
+        const summary = {
+            totalMasuk: summaryData.totalMasuk[0]?.count || 0,
+            totalUjiAdmin: summaryData.totalUjiAdmin[0]?.count || 0,
+            totalVerlap: summaryData.totalVerlap[0]?.count || 0,
+            totalPemeriksaan: summaryData.totalPemeriksaan[0]?.count || 0,
+            totalPerbaikan: summaryData.totalPerbaikan[0]?.count || 0,
+            totalRPD: summaryData.totalRPD[0]?.count || 0,
+            totalArsip: summaryData.totalArsip[0]?.count || 0,
+        };
         
-        res.status(200).json({ success: true, data: { totalMasuk, totalUjiAdmin, totalVerlap, totalPemeriksaan, totalPerbaikan, totalRPD, totalArsip }});
+        res.status(200).json({ success: true, data: summary });
     } catch (error) {
         console.error("Error di /api/dashboard/summary:", error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data summary.' });
@@ -171,19 +181,6 @@ app.get('/api/dashboard/summary/by-type', async (req, res) => {
         res.status(200).json({ success: true, data: results });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Gagal mengambil data summary per jenis.' });
-    }
-});
-
-app.get('/api/dokumen/dikembalikan', async (req, res) => {
-    try {
-        const db = await connectToDb();
-        const returnedDocs = await db.collection(COLLECTION_DOKUMEN).find({
-            tanggalPengembalian: { $exists: true, $ne: "" },
-            tanggalPHP: ""
-        }).sort({ tanggalPengembalian: -1 }).toArray();
-        res.status(200).json({ success: true, data: returnedDocs });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Gagal mengambil data dokumen yang dikembalikan.' });
     }
 });
 
