@@ -31,12 +31,28 @@ function DashboardPage() {
         if (userRole === 'Arsip') return 'ArsipDinamis'; // Default untuk role Arsip
         return ''; 
     };
+
     const [activeTab, setActiveTab] = useState(getDefaultTab());
+    // --- PERBAIKAN 1: Tambahkan state untuk mengelola tahun yang dipilih ---
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
     const handleLogout = () => {
         localStorage.removeItem('userRole');
         navigate('/');
     };
+    
+    // --- PERBAIKAN 2: Komponen ini sekarang mengelola dan mengirimkan state 'selectedYear' ---
+    const renderSummarySection = () => (
+        <div style={{ marginBottom: '2.5rem' }}>
+            {/* Kirim 'selectedYear' dan 'setSelectedYear' sebagai props */}
+            <SummaryDashboard selectedYear={selectedYear} setSelectedYear={setSelectedYear} />
+            
+            <div style={{ marginTop: '1.5rem' }}>
+                {/* Kirim 'selectedYear' sebagai prop */}
+                <SummaryByTypeDashboard selectedYear={selectedYear} />
+            </div>
+        </div>
+    );
 
     // Tampilan untuk role MPP
     const renderMPPForms = () => (
