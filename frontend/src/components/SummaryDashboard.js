@@ -66,7 +66,7 @@ function SummaryDashboard({ selectedYear, setSelectedYear }) {
     const generateYearOptions = () => {
         const currentYear = new Date().getFullYear();
         const years = [];
-        for (let i = currentYear; i >= 2020; i--) { years.push(i); }
+        for (let i = currentYear; i >= 2025; i--) { years.push(i); }
         return years.map(year => <option key={year} value={year}>{year}</option>);
     };
 
