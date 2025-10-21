@@ -118,20 +118,39 @@ app.get('/api/rekap/all', async (req, res) => {
     }
 });
 
-// --- ENDPOINT UNTUK DASHBOARD SUMMARY ---
+// --- ENDPOINT UNTUK DASHBOARD SUMMARY DIPERBARUI TOTAL ---
 app.get('/api/dashboard/summary', async (req, res) => {
     try {
         const db = await connectToDb();
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
 
-        // Filter utama: hanya ambil dokumen berdasarkan tahun pada tanggal masuk dokumen
-        const yearFilter = {
-            tanggalMasukDokumen: { $regex: `^${year}-` }
-        };
-
         const pipeline = [
-            { $match: yearFilter },
             {
+                // Tahap 1: Buat field baru 'docYear' untuk menstandarkan tahun
+                $addFields: {
+                    docYear: {
+                        $cond: {
+                            if: { $eq: [{ $type: "$tanggalMasukDokumen" }, "date"] },
+                            then: { $year: "$tanggalMasukDokumen" },
+                            else: {
+                                $cond: {
+                                    if: { $eq: [{ $type: "$tanggalMasukDokumen" }, "string"] },
+                                    then: { $toInt: { $substr: ["$tanggalMasukDokumen", 0, 4] } },
+                                    else: null // Abaikan jika bukan string atau date
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                // Tahap 2: Filter berdasarkan 'docYear' yang sudah standar
+                $match: {
+                    docYear: year
+                }
+            },
+            {
+                // Tahap 3: Hitung semua statistik
                 $facet: {
                     "totalMasuk": [{ $count: "count" }],
                     "totalUjiAdmin": [{ $match: { nomorUjiBerkas: { $ne: "" } } }, { $count: "count" }],
@@ -145,7 +164,7 @@ app.get('/api/dashboard/summary', async (req, res) => {
         ];
 
         const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
-
+        
         if (results.length === 0 || !results[0]) {
             const summary = { totalMasuk: 0, totalUjiAdmin: 0, totalVerlap: 0, totalPemeriksaan: 0, totalPerbaikan: 0, totalRPD: 0, totalArsip: 0 };
             return res.status(200).json({ success: true, data: summary });
