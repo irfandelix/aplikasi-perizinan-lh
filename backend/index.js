@@ -118,6 +118,58 @@ app.get('/api/rekap/all', async (req, res) => {
     }
 });
 
+app.get('/api/dashboard/summary', async (req, res) => {
+    try {
+        const db = await connectToDb();
+        const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
+        const queryYear = { createdAt: { $gte: new Date(`${year}-01-01T00:00:00.000Z`), $lt: new Date(`${year + 1}-01-01T00:00:00.000Z`) } };
+        const notEmptyQuery = (field) => ({ ...queryYear, [field]: { $exists: true, $ne: "" } });
+
+        const [ totalMasuk, totalUjiAdmin, totalVerlap, totalPemeriksaan, totalPerbaikan, totalRPD, totalArsip ] = await Promise.all([
+            db.collection(COLLECTION_DOKUMEN).countDocuments(queryYear),
+            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorUjiBerkas')),
+            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorBAVerlap')),
+            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorBAPemeriksaan')),
+            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorPHP')),
+            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorRisalah')),
+            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('checklistArsip'))
+        ]);
+        
+        res.status(200).json({ success: true, data: { totalMasuk, totalUjiAdmin, totalVerlap, totalPemeriksaan, totalPerbaikan, totalRPD, totalArsip }});
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Gagal mengambil data summary.' });
+    }
+});
+
+app.get('/api/dashboard/summary/by-type', async (req, res) => {
+    try {
+        const db = await connectToDb();
+        const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
+        const pipeline = [
+            { $match: { createdAt: { $gte: new Date(`${year}-01-01T00:00:00.000Z`), $lt: new Date(`${year + 1}-01-01T00:00:00.000Z`) } } },
+            { $group: { _id: "$jenisDokumen", count: { $sum: 1 } } },
+            { $sort: { _id: 1 } }
+        ];
+        const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
+        res.status(200).json({ success: true, data: results });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Gagal mengambil data summary per jenis.' });
+    }
+});
+
+app.get('/api/dokumen/dikembalikan', async (req, res) => {
+    try {
+        const db = await connectToDb();
+        const returnedDocs = await db.collection(COLLECTION_DOKUMEN).find({
+            tanggalPengembalian: { $exists: true, $ne: "" },
+            tanggalPHP: ""
+        }).sort({ tanggalPengembalian: -1 }).toArray();
+        res.status(200).json({ success: true, data: returnedDocs });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Gagal mengambil data dokumen yang dikembalikan.' });
+    }
+});
+
 // Endpoint TUNGGAL untuk semua proses simpan/update (SUDAH DIPERBAIKI)
 app.post('/api/submit/:tahap', async (req, res) => {
     const { tahap } = req.params;
@@ -278,46 +330,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
     }
 });
 
-// --- ENDPOINT BARU UNTUK DASHBOARD SUMMARY ---
-app.get('/api/dashboard/summary', async (req, res) => {
-    try {
-        const db = await connectToDb();
-        const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
-        const queryYear = { createdAt: { $gte: new Date(`${year}-01-01T00:00:00.000Z`), $lt: new Date(`${year + 1}-01-01T00:00:00.000Z`) } };
-        const notEmptyQuery = (field) => ({ ...queryYear, [field]: { $exists: true, $ne: "" } });
 
-        const [ totalMasuk, totalUjiAdmin, totalVerlap, totalPemeriksaan, totalPerbaikan, totalRPD, totalArsip ] = await Promise.all([
-            db.collection(COLLECTION_DOKUMEN).countDocuments(queryYear),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorUjiBerkas')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorBAVerlap')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorBAPemeriksaan')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorPHP')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorRisalah')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('checklistArsip'))
-        ]);
-        
-        res.status(200).json({ success: true, data: { totalMasuk, totalUjiAdmin, totalVerlap, totalPemeriksaan, totalPerbaikan, totalRPD, totalArsip }});
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Gagal mengambil data summary.' });
-    }
-});
-
-// --- ENDPOINT BARU UNTUK SUMMARY BERDASARKAN JENIS DOKUMEN ---
-app.get('/api/dashboard/summary/by-type', async (req, res) => {
-    try {
-        const db = await connectToDb();
-        const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
-        const pipeline = [
-            { $match: { createdAt: { $gte: new Date(`${year}-01-01T00:00:00.000Z`), $lt: new Date(`${year + 1}-01-01T00:00:00.000Z`) } } },
-            { $group: { _id: "$jenisDokumen", count: { $sum: 1 } } },
-            { $sort: { _id: 1 } }
-        ];
-        const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
-        res.status(200).json({ success: true, data: results });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Gagal mengambil data summary per jenis.' });
-    }
-});
 
 // --- ENDPOINT UNTUK FITUR ARSIP DINAMIS ---
 app.get('/api/arsip/kode', async (req, res) => {
