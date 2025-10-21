@@ -138,9 +138,13 @@ app.get('/api/dashboard/summary', async (req, res) => {
                                         $cond: {
                                             if: { $eq: [{ $type: "$$dateField" }, "date"] },
                                             then: { $year: "$$dateField" },
-                                            else: { 
-                                                $toInt: { 
-                                                    $substr: ["$$dateField", 0, 4] 
+                                            else: {
+                                                // Konversi aman: jika gagal, kembalikan null
+                                                $convert: {
+                                                    input: { $substrCP: [ "$$dateField", 0, 4 ] },
+                                                    to: "int",
+                                                    onError: null,
+                                                    onNull: null
                                                 }
                                             }
                                         }
