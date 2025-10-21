@@ -16,7 +16,7 @@ const summaryStyles = `
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     .summary-card-value {
-        font-size: 2.5rem;
+        font-size: 2.5rem; /* Ukuran font disesuaikan agar muat */
         font-weight: bold;
         color: var(--primary-color);
         margin: 0;
@@ -35,24 +35,25 @@ const summaryStyles = `
         display: flex;
         align-items: center;
         gap: 1rem;
-        background-color: #fff;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
     }
 `;
 
-// Menerima selectedYear dan setSelectedYear sebagai props
 function SummaryDashboard({ selectedYear, setSelectedYear }) {
     const [summary, setSummary] = useState(null);
+    const [summaryByType, setSummaryByType] = useState([]); // State baru untuk data per jenis
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchSummary = async () => {
+        const fetchSummaryData = async () => {
             setLoading(true);
             try {
-                const response = await api.get(`/dashboard/summary?year=${selectedYear}`);
-                setSummary(response.data.data);
+                // Mengambil kedua data summary secara bersamaan
+                const [summaryRes, byTypeRes] = await Promise.all([
+                    api.get(`/dashboard/summary?year=${selectedYear}`),
+                    api.get(`/dashboard/summary/by-type?year=${selectedYear}`)
+                ]);
+                setSummary(summaryRes.data.data);
+                setSummaryByType(byTypeRes.data.data);
             } catch (error) {
                 console.error("Gagal mengambil data summary:", error);
                 alert("Gagal memuat data summary.");
@@ -60,7 +61,7 @@ function SummaryDashboard({ selectedYear, setSelectedYear }) {
                 setLoading(false);
             }
         };
-        fetchSummary();
+        fetchSummaryData();
     }, [selectedYear]);
 
     const generateYearOptions = () => {
@@ -70,14 +71,21 @@ function SummaryDashboard({ selectedYear, setSelectedYear }) {
         return years.map(year => <option key={year} value={year}>{year}</option>);
     };
 
+    // Fungsi helper untuk mendapatkan jumlah berdasarkan jenis dokumen
+    const getCount = (docType) => {
+        const item = summaryByType.find(s => s._id === docType);
+        return item ? item.count : 0;
+    };
+
+    // Daftar kartu yang akan ditampilkan diubah sesuai permintaan Anda
     const summaryItems = [
         { label: "Dokumen Masuk", value: summary?.totalMasuk },
-        { label: "Uji Administrasi", value: summary?.totalUjiAdmin },
-        { label: "Verifikasi Lapangan", value: summary?.totalVerlap },
-        { label: "Pemeriksaan Berkas", value: summary?.totalPemeriksaan },
-        { label: "Hasil Perbaikan", value: summary?.totalPerbaikan },
-        { label: "RPD Terbit", value: summary?.totalRPD },
-        { label: "Sudah Diarsip", value: summary?.totalArsip },
+        { label: "SPPL", value: getCount('SPPL') },
+        { label: "UKL-UPL", value: getCount('UKLUPL') },
+        { label: "DPLH", value: getCount('DPLH') },
+        { label: "RINTEK LB3", value: getCount('RINTEK LB3') },
+        { label: "PERTEK AIR LIMBAH", value: getCount('PERTEK AIR LIMBAH') },
+        { label: "SLO", value: getCount('SLO') }
     ];
 
     return (

@@ -171,6 +171,52 @@ app.get('/api/dashboard/summary', async (req, res) => {
     }
 });
 
+app.get('/api/dashboard/summary/by-type', async (req, res) => {
+    try {
+        const db = await connectToDb();
+        const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
+        
+        const allDocs = await db.collection(COLLECTION_DOKUMEN).find({}).toArray();
+
+        const docsInYear = allDocs.filter(doc => {
+            if (!doc.tanggalMasukDokumen) return false;
+            try {
+                if (typeof doc.tanggalMasukDokumen === 'string' && doc.tanggalMasukDokumen.includes('-')) {
+                    return new Date(doc.tanggalMasukDokumen).getFullYear() === year;
+                }
+                if (typeof doc.tanggalMasukDokumen === 'string' && doc.tanggalMasukDokumen.includes('/')) {
+                    const parts = doc.tanggalMasukDokumen.split('/');
+                    return parseInt(parts[2], 10) === year;
+                }
+                if (doc.tanggalMasukDokumen instanceof Date) {
+                    return doc.tanggalMasukDokumen.getFullYear() === year;
+                }
+            } catch (e) {
+                return false;
+            }
+            return false;
+        });
+
+        const summaryByType = docsInYear.reduce((acc, doc) => {
+            const docType = doc.jenisDokumen;
+            if (docType) {
+                acc[docType] = (acc[docType] || 0) + 1;
+            }
+            return acc;
+        }, {});
+
+        const results = Object.keys(summaryByType).map(key => ({
+            _id: key,
+            count: summaryByType[key]
+        })).sort((a, b) => a._id.localeCompare(b._id));
+        
+        res.status(200).json({ success: true, data: results });
+    } catch (error) {
+        console.error("Error di /api/dashboard/summary/by-type:", error);
+        res.status(500).json({ success: false, message: 'Gagal mengambil data summary per jenis.' });
+    }
+});
+
 // Endpoint TUNGGAL untuk semua proses simpan/update (SUDAH DIPERBAIKI)
 app.post('/api/submit/:tahap', async (req, res) => {
     const { tahap } = req.params;
