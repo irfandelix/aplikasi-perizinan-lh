@@ -122,21 +122,38 @@ app.get('/api/dashboard/summary', async (req, res) => {
     try {
         const db = await connectToDb();
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
-        const queryYear = { createdAt: { $gte: new Date(`${year}-01-01T00:00:00.000Z`), $lt: new Date(`${year + 1}-01-01T00:00:00.000Z`) } };
-        const notEmptyQuery = (field) => ({ ...queryYear, [field]: { $exists: true, $ne: "" } });
+
+        // Membuat filter tahun yang lebih fleksibel
+        // Ia akan mencoba memfilter berdasarkan 'createdAt' jika ada, 
+        // atau mengambil semua data jika tidak ada filter tahun yang spesifik.
+        const yearFilter = {
+            $gte: new Date(`${year}-01-01T00:00:00.000Z`),
+            $lt: new Date(`${year + 1}-01-01T00:00:00.000Z`)
+        };
+
+        // Fungsi helper baru untuk membuat query yang lebih kuat
+        const countQuery = (field) => {
+            const query = { [field]: { $exists: true, $ne: "" } };
+            // Hanya tambahkan filter tahun jika field 'createdAt' ada
+            if (field !== 'createdAt') {
+                query.createdAt = yearFilter;
+            }
+            return query;
+        };
 
         const [ totalMasuk, totalUjiAdmin, totalVerlap, totalPemeriksaan, totalPerbaikan, totalRPD, totalArsip ] = await Promise.all([
-            db.collection(COLLECTION_DOKUMEN).countDocuments(queryYear),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorUjiBerkas')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorBAVerlap')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorBAPemeriksaan')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorPHP')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('nomorRisalah')),
-            db.collection(COLLECTION_DOKUMEN).countDocuments(notEmptyQuery('checklistArsip'))
+            db.collection(COLLECTION_DOKUMEN).countDocuments({ createdAt: yearFilter }),
+            db.collection(COLLECTION_DOKUMEN).countDocuments(countQuery('nomorUjiBerkas')),
+            db.collection(COLLECTION_DOKUMEN).countDocuments(countQuery('nomorBAVerlap')),
+            db.collection(COLLECTION_DOKUMEN).countDocuments(countQuery('nomorBAPemeriksaan')),
+            db.collection(COLLECTION_DOKUMEN).countDocuments(countQuery('nomorPHP')),
+            db.collection(COLLECTION_DOKUMEN).countDocuments(countQuery('nomorRisalah')),
+            db.collection(COLLECTION_DOKUMEN).countDocuments(countQuery('checklistArsip'))
         ]);
         
         res.status(200).json({ success: true, data: { totalMasuk, totalUjiAdmin, totalVerlap, totalPemeriksaan, totalPerbaikan, totalRPD, totalArsip }});
     } catch (error) {
+        console.error("Error di /api/dashboard/summary:", error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data summary.' });
     }
 });
