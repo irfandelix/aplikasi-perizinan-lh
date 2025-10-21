@@ -126,7 +126,7 @@ app.get('/api/dashboard/summary', async (req, res) => {
 
         const pipeline = [
             {
-                // Tahap 1: Buat field baru 'docYear' untuk menstandarkan tahun dengan aman
+                // Tahap 1: Buat field baru 'docYear' untuk menstandarkan tahun dari berbagai format
                 $addFields: {
                     docYear: {
                         $let: {
@@ -137,19 +137,19 @@ app.get('/api/dashboard/summary', async (req, res) => {
                                     then: {
                                         $cond: {
                                             if: { $eq: [{ $type: "$$dateField" }, "date"] },
-                                            then: { $year: "$$dateField" },
-                                            else: {
-                                                // Konversi aman: jika gagal, kembalikan null
-                                                $convert: {
-                                                    input: { $substrCP: [ "$$dateField", 0, 4 ] },
-                                                    to: "int",
-                                                    onError: null,
-                                                    onNull: null
+                                            then: { $year: "$$dateField" }, // Jika formatnya sudah Date
+                                            else: { // Jika formatnya String
+                                                $cond: {
+                                                    if: { $regexMatch: { input: "$$dateField", regex: /^\d{4}-/ } },
+                                                    // Jika formatnya 'YYYY-MM-DD', ambil 4 karakter pertama
+                                                    then: { $convert: { input: { $substrCP: ["$$dateField", 0, 4] }, to: "int", onError: null, onNull: null } },
+                                                    // Jika formatnya 'D/M/YYYY', pecah dan ambil bagian terakhir
+                                                    else: { $convert: { input: { $arrayElemAt: [{ $split: ["$$dateField", "/"] }, -1] }, to: "int", onError: null, onNull: null } }
                                                 }
                                             }
                                         }
                                     },
-                                    else: null
+                                    else: null // Jika field kosong atau tidak ada
                                 }
                             }
                         }
@@ -178,6 +178,7 @@ app.get('/api/dashboard/summary', async (req, res) => {
 
         const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
         
+        // Menangani kasus jika tidak ada data sama sekali di tahun yang dipilih
         if (results.length === 0 || !results[0] || results[0].totalMasuk.length === 0) {
             const summary = { totalMasuk: 0, totalUjiAdmin: 0, totalVerlap: 0, totalPemeriksaan: 0, totalPerbaikan: 0, totalRPD: 0, totalArsip: 0 };
             return res.status(200).json({ success: true, data: summary });
