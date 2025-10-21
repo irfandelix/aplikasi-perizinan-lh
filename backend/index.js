@@ -119,6 +119,7 @@ app.get('/api/rekap/all', async (req, res) => {
 });
 
 // --- ENDPOINT UNTUK DASHBOARD SUMMARY DIPERBARUI TOTAL ---
+// --- ENDPOINT UNTUK DASHBOARD SUMMARY DIPERBARUI TOTAL ---
 app.get('/api/dashboard/summary', async (req, res) => {
     try {
         const db = await connectToDb();
@@ -126,17 +127,22 @@ app.get('/api/dashboard/summary', async (req, res) => {
 
         const pipeline = [
             {
-                // Tahap 1: Buat field baru 'docYear' untuk menstandarkan tahun
+                // Tahap 1: Buat field baru 'docYear' untuk menstandarkan tahun dengan aman
                 $addFields: {
                     docYear: {
-                        $cond: {
-                            if: { $eq: [{ $type: "$tanggalMasukDokumen" }, "date"] },
-                            then: { $year: "$tanggalMasukDokumen" },
-                            else: {
+                        $let: {
+                            vars: { dateField: "$tanggalMasukDokumen" },
+                            in: {
                                 $cond: {
-                                    if: { $eq: [{ $type: "$tanggalMasukDokumen" }, "string"] },
-                                    then: { $toInt: { $substr: ["$tanggalMasukDokumen", 0, 4] } },
-                                    else: null // Abaikan jika bukan string atau date
+                                    if: { $and: [ { $ne: ["$$dateField", null] }, { $ne: ["$$dateField", ""] } ] },
+                                    then: {
+                                        $cond: {
+                                            if: { $eq: [{ $type: "$$dateField" }, "date"] },
+                                            then: { $year: "$$dateField" },
+                                            else: { $toInt: { $substr: ["$$dateField", 0, 4] } }
+                                        }
+                                    },
+                                    else: null
                                 }
                             }
                         }
