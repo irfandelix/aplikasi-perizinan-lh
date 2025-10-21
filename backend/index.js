@@ -129,24 +129,16 @@ app.get('/api/dashboard/summary', async (req, res) => {
             tanggalMasukDokumen: { $regex: `^${year}-` }
         };
 
-        // $facet memungkinkan kita menjalankan beberapa pipeline agregasi terpisah dalam satu query
         const pipeline = [
-            { $match: yearFilter }, // Terapkan filter tahun ke semua perhitungan
+            { $match: yearFilter },
             {
                 $facet: {
-                    // Hitung semua dokumen yang cocok dengan filter tahun
                     "totalMasuk": [{ $count: "count" }],
-                    // Hitung dokumen di mana nomorUjiBerkas TIDAK KOSONG
                     "totalUjiAdmin": [{ $match: { nomorUjiBerkas: { $ne: "" } } }, { $count: "count" }],
-                    // Hitung dokumen di mana nomorBAVerlap TIDAK KOSONG
                     "totalVerlap": [{ $match: { nomorBAVerlap: { $ne: "" } } }, { $count: "count" }],
-                    // Hitung dokumen di mana nomorBAPemeriksaan TIDAK KOSONG
                     "totalPemeriksaan": [{ $match: { nomorBAPemeriksaan: { $ne: "" } } }, { $count: "count" }],
-                    // Hitung dokumen di mana nomorPHP TIDAK KOSONG
                     "totalPerbaikan": [{ $match: { nomorPHP: { $ne: "" } } }, { $count: "count" }],
-                    // Hitung dokumen di mana nomorRisalah TIDAK KOSONG
                     "totalRPD": [{ $match: { nomorRisalah: { $ne: "" } } }, { $count: "count" }],
-                    // Hitung dokumen di mana checklistArsip TIDAK KOSONG
                     "totalArsip": [{ $match: { checklistArsip: { $ne: "" } } }, { $count: "count" }]
                 }
             }
@@ -154,14 +146,12 @@ app.get('/api/dashboard/summary', async (req, res) => {
 
         const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
 
-        // Menangani kasus jika tidak ada data sama sekali di tahun yang dipilih
         if (results.length === 0 || !results[0]) {
             const summary = { totalMasuk: 0, totalUjiAdmin: 0, totalVerlap: 0, totalPemeriksaan: 0, totalPerbaikan: 0, totalRPD: 0, totalArsip: 0 };
             return res.status(200).json({ success: true, data: summary });
         }
 
         const summaryData = results[0];
-        // Mengambil hasil dari setiap perhitungan, jika kosong maka nilainya 0
         const summary = {
             totalMasuk: summaryData.totalMasuk[0]?.count || 0,
             totalUjiAdmin: summaryData.totalUjiAdmin[0]?.count || 0,
