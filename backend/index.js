@@ -171,49 +171,19 @@ app.get('/api/dashboard/summary', async (req, res) => {
     }
 });
 
-// --- ENDPOINT BARU UNTUK SUMMARY BERDASARKAN JENIS DOKUMEN ---
+// --- ENDPOINT SUMMARY PER JENIS JUGA DIPERBARUI ---
 app.get('/api/dashboard/summary/by-type', async (req, res) => {
     try {
         const db = await connectToDb();
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
-
-        // Mengambil semua dokumen untuk difilter di JavaScript
-        const allDocs = await db.collection(COLLECTION_DOKUMEN).find({}).toArray();
-
-        // Filter dokumen berdasarkan tahun di JavaScript
-        const docsInYear = allDocs.filter(doc => {
-            if (!doc.tanggalMasukDokumen) return false;
-            try {
-                if (typeof doc.tanggalMasukDokumen === 'string' && doc.tanggalMasukDokumen.includes('-')) {
-                    return new Date(doc.tanggalMasukDokumen).getFullYear() === year;
-                }
-                if (typeof doc.tanggalMasukDokumen === 'string' && doc.tanggalMasukDokumen.includes('/')) {
-                    const parts = doc.tanggalMasukDokumen.split('/');
-                    return parseInt(parts[2], 10) === year;
-                }
-                if (doc.tanggalMasukDokumen instanceof Date) {
-                    return doc.tanggalMasukDokumen.getFullYear() === year;
-                }
-            } catch (e) {
-                return false;
-            }
-            return false;
-        });
-
-        // Hitung jumlah untuk setiap jenis dokumen
-        const summaryByType = docsInYear.reduce((acc, doc) => {
-            const docType = doc.jenisDokumen;
-            if (docType) {
-                acc[docType] = (acc[docType] || 0) + 1;
-            }
-            return acc;
-        }, {});
-
-        const results = Object.keys(summaryByType).map(key => ({
-            _id: key,
-            count: summaryByType[key]
-        })).sort((a, b) => a._id.localeCompare(b._id));
         
+        const pipeline = [
+            { $match: { tanggalMasukDokumen: { $regex: `^${year}-` } } },
+            { $group: { _id: "$jenisDokumen", count: { $sum: 1 } } },
+            { $sort: { _id: 1 } }
+        ];
+
+        const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
         res.status(200).json({ success: true, data: results });
     } catch (error) {
         console.error("Error di /api/dashboard/summary/by-type:", error);
