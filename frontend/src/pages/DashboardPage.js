@@ -43,12 +43,19 @@ function DashboardPage() {
         navigate('/');
     };
     
-    // --- PERBAIKAN 2: Komponen ini sekarang mengelola dan mengirimkan state 'selectedYear' ---
+     // Komponen untuk menampilkan bagian summary
     const renderSummarySection = () => (
-        <div style={{ marginBottom: '2.5rem', gap: '20px' }}>
-            {/* Kirim 'selectedYear' dan 'setSelectedYear' sebagai props */}
+        <div className="summary-section">
+            <style>{dashboardLayoutStyles}</style>
+            
+            {/* Bagian Atas: Kartu Statistik Total */}
             <SummaryDashboard selectedYear={selectedYear} setSelectedYear={setSelectedYear} />
-            <SummaryByTypeDashboard selectedYear={selectedYear} setSelectedYear={setSelectedYear} />        
+            
+            {/* PERBAIKAN DI SINI: Tambahkan <div> dengan margin-top untuk memberi jarak */}
+            <div style={{ marginTop: '1.5rem' }}> 
+                {/* Bagian Bawah: Rincian per Jenis Dokumen */}
+                <SummaryByTypeDashboard selectedYear={selectedYear} />
+            </div>
         </div>
     );
 
