@@ -77,7 +77,7 @@ function SummaryByTypeDashboard({ selectedYear }) {
     return (
         <div className="summary-by-type-card">
             <style>{summaryByTypeStyles}</style>
-            <h4>Rincian Jenis Dokumen Masuk</h4>
+            <h4>Rincian Jenis Dokumen Yang Masuk ke DLH</h4>
             {summary.length > 0 ? (
                 <div className="summary-by-type-grid">
                     {documentTypes.map(type => (
