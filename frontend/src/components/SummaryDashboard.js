@@ -4,7 +4,7 @@ import api from '../api';
 const summaryStyles = `
     .summary-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 1.5rem;
     }
     .summary-card {
@@ -14,12 +14,6 @@ const summaryStyles = `
         padding: 1.5rem;
         text-align: center;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .summary-by-type-grid {
-        display: grid;
-        /* Mengatur agar grid selalu memiliki 4 kolom, sehingga otomatis menjadi 2 baris */
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1rem;
     }
     .summary-card-value {
         font-size: 2.5rem; /* Ukuran font disesuaikan agar muat */
@@ -83,7 +77,6 @@ function SummaryDashboard({ selectedYear, setSelectedYear }) {
         { label: "BA Pemeriksaan", value: summary?.totalPemeriksaan },
         { label: "BA Perbaikan", value: summary?.totalPerbaikan },
         { label: "Risalah Pengolah Data", value: summary?.totalRPD },
-        { label: "Arsip", value: summary?.totalArsip }
     ];
 
     return (

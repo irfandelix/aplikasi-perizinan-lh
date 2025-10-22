@@ -161,7 +161,6 @@ app.get('/api/dashboard/summary', async (req, res) => {
             totalPemeriksaan: filteredDocs.filter(d => d.nomorBAPemeriksaan && d.nomorBAPemeriksaan !== "").length,
             totalPerbaikan: filteredDocs.filter(d => d.nomorPHP && d.nomorPHP !== "").length,
             totalRPD: filteredDocs.filter(d => d.nomorRisalah && d.nomorRisalah !== "").length,
-            totalArsip: filteredDocs.filter(d => d.checklistArsip && d.checklistArsip !== "").length,
         };
         
         res.status(200).json({ success: true, data: summary });
