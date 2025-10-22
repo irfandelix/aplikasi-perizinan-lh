@@ -136,24 +136,48 @@ app.get('/api/dashboard/summary', async (req, res) => {
     }
 });
 
-// --- ENDPOINT SUMMARY PER JENIS (DISEDERHANAKAN) ---
+// --- ENDPOINT SUMMARY PER JENIS (VERSI PALING AMAN) ---
 app.get('/api/dashboard/summary/by-type', async (req, res) => {
     try {
         const db = await connectToDb();
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
         
-        const pipeline = [
-            { $match: { tanggalMasukDokumen: { $regex: `^${year}-` } } },
-            { 
-                $group: { 
-                    _id: "$jenisDokumen", 
-                    count: { $sum: 1 } 
-                } 
-            },
-            { $sort: { _id: 1 } }
-        ];
+        const allDocs = await db.collection(COLLECTION_DOKUMEN).find({}).toArray();
 
-        const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
+        const docsInYear = allDocs.filter(doc => {
+            if (!doc.tanggalMasukDokumen) return false;
+            let docYear = null;
+            try {
+                if (doc.tanggalMasukDokumen instanceof Date) {
+                    docYear = doc.tanggalMasukDokumen.getFullYear();
+                } else if (typeof doc.tanggalMasukDokumen === 'string') {
+                    if (doc.tanggalMasukDokumen.includes('-')) {
+                        const yearPart = doc.tanggalMasukDokumen.substring(0, 4);
+                        if (!isNaN(parseInt(yearPart))) docYear = parseInt(yearPart, 10);
+                    } else if (doc.tanggalMasukDokumen.includes('/')) {
+                        const parts = doc.tanggalMasukDokumen.split('/');
+                        if (parts.length === 3) {
+                            const yearPart = parts[2];
+                            if (!isNaN(parseInt(yearPart))) docYear = parseInt(yearPart, 10);
+                        }
+                    }
+                }
+            } catch (e) { return false; }
+            return docYear === year;
+        });
+
+        const summaryByType = docsInYear.reduce((acc, doc) => {
+            const docType = doc.jenisDokumen;
+            if (docType && typeof docType === 'string' && docType.trim() !== '') {
+                acc[docType] = (acc[docType] || 0) + 1;
+            }
+            return acc;
+        }, {});
+
+        const results = Object.keys(summaryByType).map(key => ({
+            _id: key,
+            count: summaryByType[key]
+        })).sort((a, b) => a._id.localeCompare(b._id));
         
         res.status(200).json({ success: true, data: results });
     } catch (error) {
