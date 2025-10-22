@@ -8,16 +8,17 @@ const summaryByTypeStyles = `
         border-radius: 8px;
         padding: 1.5rem;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        height: 100%;
     }
     .summary-by-type-card h4 {
         margin-top: 0;
         margin-bottom: 1.5rem;
         color: #333;
     }
+    /* --- PERUBAHAN DI SINI --- */
     .summary-by-type-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        /* Mengatur agar grid selalu memiliki 4 kolom, sehingga otomatis menjadi 2 baris */
+        grid-template-columns: repeat(4, 1fr);
         gap: 1rem;
     }
     .summary-item-card {
