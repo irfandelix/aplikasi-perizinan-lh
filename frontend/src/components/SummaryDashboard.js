@@ -77,12 +77,6 @@ function SummaryDashboard({ selectedYear, setSelectedYear }) {
         return years.map(year => <option key={year} value={year}>{year}</option>);
     };
 
-    // Fungsi helper untuk mendapatkan jumlah berdasarkan jenis dokumen
-    const getCount = (docType) => {
-        const item = summaryByType.find(s => s._id === docType);
-        return item ? item.count : 0;
-    };
-
     // Daftar kartu yang akan ditampilkan diubah sesuai permintaan Anda
     const summaryItems = [
         { label: "Dokumen Masuk", value: summary?.totalMasuk },
