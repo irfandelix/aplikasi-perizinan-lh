@@ -45,7 +45,7 @@ function DashboardPage() {
     
     // --- PERBAIKAN 2: Komponen ini sekarang mengelola dan mengirimkan state 'selectedYear' ---
     const renderSummarySection = () => (
-        <div style={{ marginBottom: '2.5rem' }}>
+        <div style={{ marginBottom: '2.5rem', gap: '20px' }}>
             {/* Kirim 'selectedYear' dan 'setSelectedYear' sebagai props */}
             <SummaryDashboard selectedYear={selectedYear} setSelectedYear={setSelectedYear} />
             <SummaryByTypeDashboard selectedYear={selectedYear} setSelectedYear={setSelectedYear} />        
