@@ -157,7 +157,7 @@ app.get('/api/dashboard/summary/by-type', async (req, res) => {
         ];
         console.log("==> [INFO] Menjalankan pipeline agregasi:", JSON.stringify(pipeline)); // LOG 3: Query yang dijalankan
 
-        const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
+        const results = await db.collection(COLLECTION_NAME).aggregate(pipeline).toArray();
         console.log(`==> [SUCCESS] Data berhasil diambil dari DB. Jumlah grup ditemukan: ${results.length}`); // LOG 4: Hasil dari DB
         
         res.status(200).json({ success: true, data: results });
