@@ -15,6 +15,12 @@ const summaryStyles = `
         text-align: center;
         box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
+    .summary-by-type-grid {
+        display: grid;
+        /* Mengatur agar grid selalu memiliki 4 kolom, sehingga otomatis menjadi 2 baris */
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+    }
     .summary-card-value {
         font-size: 2.5rem; /* Ukuran font disesuaikan agar muat */
         font-weight: bold;
@@ -80,12 +86,12 @@ function SummaryDashboard({ selectedYear, setSelectedYear }) {
     // Daftar kartu yang akan ditampilkan diubah sesuai permintaan Anda
     const summaryItems = [
         { label: "Dokumen Masuk", value: summary?.totalMasuk },
-        { label: "SPPL", value: getCount('SPPL') },
-        { label: "UKL-UPL", value: getCount('UKLUPL') },
-        { label: "DPLH", value: getCount('DPLH') },
-        { label: "RINTEK LB3", value: getCount('RINTEK LB3') },
-        { label: "PERTEK AIR LIMBAH", value: getCount('PERTEK AIR LIMBAH') },
-        { label: "SLO", value: getCount('SLO') }
+        { label: "BA Hasil Uji Administrasi", value: summary?.totalUjiAdmin },
+        { label: "BA Verifikasi Lapangan", value: summary?.totalVerlap },
+        { label: "BA Pemeriksaan", value: summary?.totalPemeriksaan },
+        { label: "BA Perbaikan", value: summary?.totalPerbaikan },
+        { label: "Risalah Pengolah Data", value: summary?.totalRPD },
+        { label: "Arsip", value: summary?.totalArsip }
     ];
 
     return (

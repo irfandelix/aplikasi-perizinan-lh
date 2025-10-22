@@ -118,18 +118,53 @@ app.get('/api/rekap/all', async (req, res) => {
     }
 });
 
-// --- ENDPOINT UNTUK DASHBOARD SUMMARY (DISEDERHANAKAN) ---
+/// --- ENDPOINT UNTUK DASHBOARD SUMMARY (VERSI PALING AMAN) ---
 app.get('/api/dashboard/summary', async (req, res) => {
     try {
         const db = await connectToDb();
         const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
 
-        // Filter sederhana berdasarkan teks 'YYYY-' di awal string
-        const yearFilter = { tanggalMasukDokumen: { $regex: `^${year}-` } };
+        // 1. Ambil semua dokumen. Ini lebih aman dari error query.
+        const allDocs = await db.collection(COLLECTION_NAME).find({}).toArray();
 
-        const totalMasuk = await db.collection(COLLECTION_NAME).countDocuments(yearFilter);
+        // 2. Filter di JavaScript, yang bisa menangani berbagai format tanggal dengan aman.
+        const filteredDocs = allDocs.filter(doc => {
+            if (!doc.tanggalMasukDokumen) return false;
+            
+            let docYear = null;
+            try {
+                const dateValue = doc.tanggalMasukDokumen;
+                if (dateValue instanceof Date) {
+                    docYear = dateValue.getFullYear();
+                } else if (typeof dateValue === 'string') {
+                    if (dateValue.includes('-') && dateValue.length > 4) { // Format YYYY-MM-DD
+                        const yearPart = dateValue.substring(0, 4);
+                        if (!isNaN(parseInt(yearPart))) docYear = parseInt(yearPart, 10);
+                    } else if (dateValue.includes('/') && dateValue.length > 4) { // Format D/M/YYYY
+                        const parts = dateValue.split('/');
+                        if (parts.length === 3) {
+                            const yearPart = parts[2];
+                            if (!isNaN(parseInt(yearPart))) docYear = parseInt(yearPart, 10);
+                        }
+                    }
+                }
+            } catch (e) {
+                return false; // Abaikan jika ada error parsing
+            }
+            return docYear === year;
+        });
         
-        res.status(200).json({ success: true, data: { totalMasuk } });
+        const summary = {
+            totalMasuk: filteredDocs.length,
+            totalUjiAdmin: filteredDocs.filter(d => d.nomorUjiBerkas && d.nomorUjiBerkas !== "").length,
+            totalVerlap: filteredDocs.filter(d => d.nomorBAVerlap && d.nomorBAVerlap !== "").length,
+            totalPemeriksaan: filteredDocs.filter(d => d.nomorBAPemeriksaan && d.nomorBAPemeriksaan !== "").length,
+            totalPerbaikan: filteredDocs.filter(d => d.nomorPHP && d.nomorPHP !== "").length,
+            totalRPD: filteredDocs.filter(d => d.nomorRisalah && d.nomorRisalah !== "").length,
+            totalArsip: filteredDocs.filter(d => d.checklistArsip && d.checklistArsip !== "").length,
+        };
+        
+        res.status(200).json({ success: true, data: summary });
     } catch (error) {
         console.error("Error di /api/dashboard/summary:", error);
         res.status(500).json({ success: false, message: 'Gagal mengambil data summary.' });
