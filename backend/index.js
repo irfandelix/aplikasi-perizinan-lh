@@ -162,7 +162,9 @@ app.get('/api/dashboard/summary/by-type', async (req, res) => {
                         }
                     }
                 }
-            } catch (e) { return false; }
+            } catch (e) {
+                return false;
+            }
             return docYear === year;
         });
 
