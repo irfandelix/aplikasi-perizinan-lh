@@ -8,7 +8,7 @@ import CetakUlang from '../components/CetakUlang';
 import DaftarArsipPage from './DaftarArsipPage';
 import NotaDinasPage from './NotaDinasPage';
 import SuratKeluarPage from './SuratKeluarPage';
-// import SummaryDashboard from '../components/SummaryDashboard';
+import SummaryDashboard from '../components/SummaryDashboard';
 import SummaryByTypeDashboard from '../components/SummaryByTypeDashboard';
 
 
@@ -47,6 +47,7 @@ function DashboardPage() {
     const renderSummarySection = () => (
         <div style={{ marginBottom: '2.5rem' }}>
             {/* Kirim 'selectedYear' dan 'setSelectedYear' sebagai props */}
+            <SummaryDashboard selectedYear={selectedYear} setSelectedYear={setSelectedYear} />
             <SummaryByTypeDashboard selectedYear={selectedYear} setSelectedYear={setSelectedYear} />        
         </div>
     );

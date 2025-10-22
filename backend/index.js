@@ -127,7 +127,7 @@ app.get('/api/dashboard/summary', async (req, res) => {
         // Filter sederhana berdasarkan teks 'YYYY-' di awal string
         const yearFilter = { tanggalMasukDokumen: { $regex: `^${year}-` } };
 
-        const totalMasuk = await db.collection(COLLECTION_DOKUMEN).countDocuments(yearFilter);
+        const totalMasuk = await db.collection(COLLECTION_NAME).countDocuments(yearFilter);
         
         res.status(200).json({ success: true, data: { totalMasuk } });
     } catch (error) {
