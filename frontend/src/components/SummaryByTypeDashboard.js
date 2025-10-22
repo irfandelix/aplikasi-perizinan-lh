@@ -66,7 +66,7 @@ function SummaryByTypeDashboard({ selectedYear }) {
     }
 
     // Daftar jenis dokumen yang ingin ditampilkan kartunya
-    const documentTypes = ['SPPL', 'UKLUPL', 'AMDAL', 'DELH', 'DPLH', 'RINTEK LB3', 'PERTEK AIR LIMBAH', 'SLO'];
+    const documentTypes = ['SPPL', 'UKLUPL', 'AMDAL', 'DELH', 'DPLH', 'RINTEK', 'PERTEK AIR LIMBAH', 'SLO'];
     
     // Fungsi untuk mendapatkan jumlah dari data summary
     const getCount = (docType) => {
