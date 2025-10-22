@@ -53,7 +53,7 @@ function SummaryDashboard({ selectedYear, setSelectedYear }) {
             setLoading(true);
             try {
                 // Mengambil kedua data summary secara bersamaan
-                const [summaryRes, byTypeRes] = await Promise.all([
+                const [summaryRes] = await Promise.all([
                     api.get(`/dashboard/summary?year=${selectedYear}`),
                     api.get(`/dashboard/summary/by-type?year=${selectedYear}`)
                 ]);
