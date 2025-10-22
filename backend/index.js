@@ -150,17 +150,8 @@ app.get('/api/dashboard/summary/by-type', async (req, res) => {
             try {
                 if (doc.tanggalMasukDokumen instanceof Date) {
                     docYear = doc.tanggalMasukDokumen.getFullYear();
-                } else if (typeof doc.tanggalMasukDokumen === 'string') {
-                    if (doc.tanggalMasukDokumen.includes('-')) {
-                        const yearPart = doc.tanggalMasukDokumen.substring(0, 4);
-                        if (!isNaN(parseInt(yearPart))) docYear = parseInt(yearPart, 10);
-                    } else if (doc.tanggalMasukDokumen.includes('/')) {
-                        const parts = doc.tanggalMasukDokumen.split('/');
-                        if (parts.length === 3) {
-                            const yearPart = parts[2];
-                            if (!isNaN(parseInt(yearPart))) docYear = parseInt(yearPart, 10);
-                        }
-                    }
+                } else if (typeof doc.tanggalMasukDokumen === 'string' && doc.tanggalMasukDokumen.startsWith(year.toString())) {
+                    docYear = parseInt(doc.tanggalMasukDokumen.substring(0, 4), 10);
                 }
             } catch (e) {
                 return false;
