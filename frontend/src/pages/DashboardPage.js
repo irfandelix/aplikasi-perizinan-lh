@@ -46,7 +46,7 @@ function DashboardPage() {
      // Komponen untuk menampilkan bagian summary
     const renderSummarySection = () => (
         <div className="summary-section">
-            <style>{dashboardLayoutStyles}</style>
+            <style>{dashboardStyles}</style>
             
             {/* Bagian Atas: Kartu Statistik Total */}
             <SummaryDashboard selectedYear={selectedYear} setSelectedYear={setSelectedYear} />
