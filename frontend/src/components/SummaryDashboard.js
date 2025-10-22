@@ -46,7 +46,6 @@ const summaryStyles = `
 
 function SummaryDashboard({ selectedYear, setSelectedYear }) {
     const [summary, setSummary] = useState(null);
-    const [summaryByType, setSummaryByType] = useState([]); // State baru untuk data per jenis
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -59,7 +58,6 @@ function SummaryDashboard({ selectedYear, setSelectedYear }) {
                     api.get(`/dashboard/summary/by-type?year=${selectedYear}`)
                 ]);
                 setSummary(summaryRes.data.data);
-                setSummaryByType(byTypeRes.data.data);
             } catch (error) {
                 console.error("Gagal mengambil data summary:", error);
                 alert("Gagal memuat data summary.");
