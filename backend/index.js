@@ -139,8 +139,12 @@ app.get('/api/dashboard/summary', async (req, res) => {
 // --- ENDPOINT SUMMARY PER JENIS (DISEDERHANAKAN) ---
 app.get('/api/dashboard/summary/by-type', async (req, res) => {
     try {
+        console.log("==> [START] /api/dashboard/summary/by-type"); // LOG 1: Endpoint dimulai
         const db = await connectToDb();
         
+        const year = req.query.year ? parseInt(req.query.year) : new Date().getFullYear();
+        console.log(`==> [INFO] Menghitung data untuk tahun: ${year}`); // LOG 2: Tahun yang diterima
+
         // Query agregasi sederhana tanpa filter tahun
         const pipeline = [
             { 
@@ -151,12 +155,15 @@ app.get('/api/dashboard/summary/by-type', async (req, res) => {
             },
             { $sort: { _id: 1 } }
         ];
+        console.log("==> [INFO] Menjalankan pipeline agregasi:", JSON.stringify(pipeline)); // LOG 3: Query yang dijalankan
 
         const results = await db.collection(COLLECTION_DOKUMEN).aggregate(pipeline).toArray();
+        console.log(`==> [SUCCESS] Data berhasil diambil dari DB. Jumlah grup ditemukan: ${results.length}`); // LOG 4: Hasil dari DB
         
         res.status(200).json({ success: true, data: results });
     } catch (error) {
-        console.error("Error di /api/dashboard/summary/by-type:", error);
+        // --- INI AKAN MEMBERI TAHU KITA JIKA ADA ERROR DI SERVER ---
+        console.error("==> [ERROR] Terjadi kesalahan di /api/dashboard/summary/by-type:", error); // LOG 5: Pesan error
         res.status(500).json({ success: false, message: 'Gagal mengambil data summary per jenis.' });
     }
 });
