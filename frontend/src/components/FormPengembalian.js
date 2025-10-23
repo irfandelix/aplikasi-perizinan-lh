@@ -98,7 +98,7 @@ function FormPengembalian() {
             </fieldset>
             
             {recordData && (
-                <form onSubmit={handleApiSubmit} style={{marginTop: '0.5rem'}}>
+                <form onSubmit={handleApiSubmit}>
                     <fieldset>
                         <legend>Pengembalian Dokumen ke Pemrakarsa/Konsultan</legend>
                         <p>Gunakan form ini untuk mencatat tanggal saat dokumen dikembalikan dari Kantor LH (setelah diperiksa) ke pemrakarsa/konsultan untuk direvisi.</p>
