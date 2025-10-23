@@ -72,6 +72,8 @@ async function getGlobalMaxSequentialNumber() {
 // ================= KONFIGURASI GOOGLE DRIVE =================
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
 const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
+const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
+const privateKey = process.env.GOOGLE_PRIVATE_KEY;
 let auth;
 
 if (!folderId) {
