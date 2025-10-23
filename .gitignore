@@ -7,3 +7,5 @@
 # Environment variables
 .env
 /backend/.env
+/backend/drive-credentials.json
+/backend/uploads

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
+import FileUpload from './FileUpload'; // <-- PERUBAHAN 1: IMPORT KOMPONEN BARU
 
 const tableStyles = `
     .record-table {
@@ -121,51 +122,105 @@ function FormKantorLH() {
         }
     };
 
+// --- PERUBAHAN 2: Tambahkan komponen <FileUpload /> di setiap tab ---
     const renderFormContent = () => {
         if (!recordData) return null;
+        const noUrut = recordData.noUrut;
 
-        // --- KONDISI IF DIPERBAIKI MENJADI HURUF BESAR ---
         if (activeTab === 'B') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('b', tahapBData); }}> <fieldset><legend>Tahap B: Hasil Uji Administrasi</legend><div><label>Tanggal Penerbitan Uji Administrasi</label><input type="date" value={tahapBData.tanggalPenerbitanUa} onChange={(e) => setTahapBData({ tanggalPenerbitanUa: e.target.value })} required /></div></fieldset> <button type="submit" className="primary">Simpan Tahap B</button> </form> );
+            return (
+                <div>
+                    <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('b', tahapBData); }}> <fieldset><legend>Tahap B: Hasil Uji Administrasi</legend><div><label>Tanggal Penerbitan Uji Administrasi</label><input type="date" value={tahapBData.tanggalPenerbitanUa} onChange={(e) => setTahapBData({ tanggalPenerbitanUa: e.target.value })} required /></div></fieldset> <button type="submit" className="primary">Simpan Tahap B</button> </form>
+                    {/* Tambahkan komponen upload di sini */}
+                    <FileUpload noUrut={noUrut} fileType="BA HUA" dbField="fileTahapB" currentFileUrl={recordData.fileTahapB} onUploadSuccess={() => fetchRecord(nomorChecklist)} />
+                </div>
+            );
         }
         if (activeTab === 'C') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('c', tahapCData); }}> <fieldset><legend>Tahap C: Verifikasi Lapangan</legend><div><label>Tanggal Verifikasi Lapangan</label><input type="date" value={tahapCData.tanggalVerifikasi} onChange={(e) => setTahapCData({ tanggalVerifikasi: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap C</button> </form> );
+            return (
+                <div>
+                    <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('c', tahapCData); }}> <fieldset><legend>Tahap C: Verifikasi Lapangan</legend><div><label>Tanggal Verifikasi Lapangan</label><input type="date" value={tahapCData.tanggalVerifikasi} onChange={(e) => setTahapCData({ tanggalVerifikasi: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap C</button> </form>
+                    {/* Tambahkan komponen upload di sini */}
+                    <FileUpload noUrut={noUrut} fileType="BA Verlap" dbField="fileTahapC" currentFileUrl={recordData.fileTahapC} onUploadSuccess={() => fetchRecord(nomorChecklist)} />
+                </div>
+            );
         }
         if (activeTab === 'D') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('d', tahapDData); }}> <fieldset><legend>Tahap D: Pemeriksaan Berkas</legend><div><label>Tanggal Pemeriksaan Berkas</label><input type="date" value={tahapDData.tanggalPemeriksaan} onChange={(e) => setTahapDData({ tanggalPemeriksaan: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap D</button> </form> );
+            return (
+                <div>
+                    <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('d', tahapDData); }}> <fieldset><legend>Tahap D: Pemeriksaan Berkas</legend><div><label>Tanggal Pemeriksaan Berkas</label><input type="date" value={tahapDData.tanggalPemeriksaan} onChange={(e) => setTahapDData({ tanggalPemeriksaan: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap D</button> </form>
+                    {/* Tambahkan komponen upload di sini */}
+                    <FileUpload noUrut={noUrut} fileType="BA Pemeriksaan" dbField="fileTahapD" currentFileUrl={recordData.fileTahapD} onUploadSuccess={() => fetchRecord(nomorChecklist)} />
+                </div>
+            );
         }
         if (activeTab === 'E') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('e', tahapEData); }}> <fieldset> <legend>Tahap E: Pemeriksaan Revisi</legend> <div className="form-grid"> <div> <label>Pilih Revisi</label> <select name="nomorRevisi" value={tahapEData.nomorRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, nomorRevisi: e.target.value }))}> <option value="1">Revisi 1</option> <option value="2">Revisi 2</option> <option value="3">Revisi 3</option> <option value="4">Revisi 4</option> <option value="5">Revisi 5</option> </select> </div> <div> <label>Tanggal Pemeriksaan Revisi</label> <input type="date" name="tanggalRevisi" value={tahapEData.tanggalRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, tanggalRevisi: e.target.value }))} required /> </div> </div> </fieldset> <button type="submit" className="primary">Simpan Revisi</button> </form> );
+            const dbField = `fileTahapE${tahapEData.nomorRevisi}`;
+            const currentUrl = recordData[dbField];
+            return (
+                <div>
+                    <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('e', tahapEData); }}> <fieldset> <legend>Tahap E: Pemeriksaan Revisi</legend> <div className="form-grid"> <div> <label>Pilih Revisi</label> <select name="nomorRevisi" value={tahapEData.nomorRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, nomorRevisi: e.target.value }))}> <option value="1">Revisi 1</option> <option value="2">Revisi 2</option> <option value="3">Revisi 3</option> <option value="4">Revisi 4</option> <option value="5">Revisi 5</option> </select> </div> <div> <label>Tanggal Pemeriksaan Revisi</label> <input type="date" name="tanggalRevisi" value={tahapEData.tanggalRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, tanggalRevisi: e.target.value }))} required /> </div> </div> </fieldset> <button type="submit" className="primary">Simpan Revisi</button> </form>
+                    {/* Tambahkan komponen upload di sini */}
+                    <FileUpload noUrut={noUrut} fileType={`BA Revisi ${tahapEData.nomorRevisi}`} dbField={dbField} currentFileUrl={currentUrl} onUploadSuccess={() => fetchRecord(nomorChecklist)} />
+                </div>
+            );
         }
         if (activeTab === 'G') {
-            return ( <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('g', tahapGData); }}> <fieldset><legend>Tahap G: Risalah Pengolahan Data</legend><div> <label>Tanggal Pembuatan Risalah</label> <input type="date" value={tahapGData.tanggalPembuatanRisalah} onChange={(e) => setTahapGData({ tanggalPembuatanRisalah: e.target.value })} required /> </div> </fieldset> <button type="submit" className="primary">Simpan Tanggal Risalah</button> </form> );
+            return (
+                <div>
+                    <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('g', tahapGData); }}> <fieldset><legend>Tahap G: Risalah Pengolahan Data</legend><div> <label>Tanggal Pembuatan Risalah</label> <input type="date" value={tahapGData.tanggalPembuatanRisalah} onChange={(e) => setTahapGData({ tanggalPembuatanRisalah: e.target.value })} required /> </div> </fieldset> <button type="submit" className="primary">Simpan Tanggal Risalah</button> </form>
+                    {/* Tambahkan komponen upload di sini */}
+                    <FileUpload noUrut={noUrut} fileType="RPD" dbField="fileTahapG" currentFileUrl={recordData.fileTahapG} onUploadSuccess={() => fetchRecord(nomorChecklist)} />
+                </div>
+            );
         }
         if (activeTab === 'Arsip') {
             const arsipChecklistItems = [ "Surat Permohonan", "BA Checklist Pelayanan", "BA Hasil Uji Administrasi", "BA Verifikasi Lapangan", "Undangan", "BA Pemeriksaan Dokumen", "Risalah Pengolahan Data", "Surat Penyampaian Dokumen Hasil Perbaikan", "Tanda Terima Berkas Perbaikan", "BA Pemeriksaan Dokumen II/III/Dst.", "PKPLH / SPPL / SKKL", "Dokumen Lingkungan" ];
             return (
-                <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('arsip_perizinan', arsipData, () => window.open(`/arsip/${recordData.noUrut}`, '_blank')); }}>
+                <div>
+                    <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('arsip_perizinan', arsipData, () => window.open(`/arsip/${recordData.noUrut}`, '_blank')); }}>
+                        <fieldset>
+                            <legend>Checklist Arsip & Izin Terbit</legend>
+                            <div className="form-grid-full" style={{marginBottom: '1.5rem'}}>
+                                <label>Nomor Izin Terbit (SPPL/PKPLH/SKKL)</label>
+                                <input type="text" name="nomorIzinTerbit" value={arsipData.nomorIzinTerbit} onChange={handleArsipChange} />
+                            </div>
+                            <table className="record-table">
+                               <thead><tr><th style={{width:'5%'}}>No</th><th>Dokumen</th><th style={{width:'15%'}}>Checklist</th></tr></thead>
+                               <tbody>
+                                    {arsipChecklistItems.map((item, index) => (
+                                        <tr key={item}>
+                                            <td style={{textAlign:'center'}}>{index + 1}</td>
+                                            <td>{item}</td>
+                                            <td style={{textAlign:'center'}}>
+                                                <input type="checkbox" name={item} checked={arsipData.checklistArsip[item] || false} onChange={handleArsipChange} style={{width:'20px', height:'20px'}}/>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </fieldset>
+                        <button type="submit" className="primary">Simpan & Cetak Arsip</button>
+                    </form>
+                    {/* Tambahkan komponen upload di sini */}
+                    <FileUpload noUrut={noUrut} fileType="Izin Terbit (Final)" dbField="filePKPLH" currentFileUrl={recordData.filePKPLH} onUploadSuccess={() => fetchRecord(nomorChecklist)} />
+                </div>
+            );
+        }
+        if (activeTab === 'Pengembalian') {
+            return (
+                <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('pengembalian', pengembalianData); }}>
                     <fieldset>
-                        <legend>Checklist Arsip & Izin Terbit</legend>
-                        <div className="form-grid-full" style={{marginBottom: '1.5rem'}}>
-                            <label>Nomor Izin Terbit (SPPL/PKPLH/SKKL)</label>
-                            <input type="text" name="nomorIzinTerbit" value={arsipData.nomorIzinTerbit} onChange={handleArsipChange} />
-                        </div> 
-                        <table className="record-table">
-                           <thead><tr><th style={{width:'5%'}}>No</th><th>Dokumen</th><th style={{width:'15%'}}>Checklist</th></tr></thead>
-                           <tbody>
-                                {arsipChecklistItems.map((item, index) => (
-                                    <tr key={item}>
-                                        <td style={{textAlign:'center'}}>{index + 1}</td>
-                                        <td>{item}</td>
-                                        <td style={{textAlign:'center'}}>
-                                            <input type="checkbox" name={item} checked={arsipData.checklistArsip[item] || false} onChange={handleArsipChange} style={{width:'20px', height:'20px'}}/>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                        <legend>Pengembalian Dokumen ke Pemrakarsa</legend>
+                        <p>Gunakan form ini untuk mencatat tanggal saat dokumen dikembalikan ke pemrakarsa/konsultan untuk direvisi.</p>
+                        <div>
+                            <label>Tanggal Pengembalian</label>
+                            <input type="date" value={pengembalianData.tanggalPengembalian} onChange={(e) => setPengembalianData({ tanggalPengembalian: e.target.value })} required />
+                        </div>
                     </fieldset>
-                    <button type="submit" className="primary">Simpan & Cetak Arsip</button>
+                    <button type="submit" className="primary" style={{marginTop: '1rem'}}>
+                        Simpan Status Pengembalian
+                    </button>
                 </form>
             );
         }
@@ -197,6 +252,7 @@ function FormKantorLH() {
                     
                     {renderFormContent()}
 
+                     {/* --- PERUBAHAN 3: Tampilkan link file di tabel detail --- */}
                     <div style={{ marginTop: '2rem' }}>
                         <h4>Detail Dokumen (No. Urut: {recordData.noUrut})</h4>
                         <table className="record-table">
@@ -223,6 +279,18 @@ function FormKantorLH() {
                                 {recordData.nomorRevisi5 && ( <tr><th>Nomor BA Revisi 5</th><td><span>{recordData.nomorRevisi5}</span> ({recordData.tanggalRevisi5})</td></tr> )}
                                 {recordData.nomorPHP && (<><tr><th>Nomor Penerimaan Hasil Perbaikan</th><td><span>{recordData.nomorPHP}</span></td></tr><tr><th>Tanggal Penerimaan Hasil Perbaikan</th><td>{recordData.tanggalPHP}</td></tr></>)}
                                 {recordData.nomorRisalah && (<><tr><th>Nomor Izin Terbit</th><td><span>{recordData.nomorIzinTerbit}</span></td></tr><tr><th>Jenis Perizinan</th><td>{recordData.jenisPerizinan}</td></tr><tr><th>Nomor Risalah</th><td><span>{recordData.nomorRisalah}</span></td></tr><tr><th>Tanggal Risalah</th><td>{recordData.tanggalRisalah}</td></tr></>)}
+                            
+                                {/* Menampilkan link file yang sudah di-upload */}
+                                <FileLink label="BA HUA (B)" url={recordData.fileTahapB} />
+                                <FileLink label="BA Verlap (C)" url={recordData.fileTahapC} />
+                                <FileLink label="BA Pemeriksaan (D)" url={recordData.fileTahapD} />
+                                <FileLink label="BA Revisi 1 (E1)" url={recordData.fileTahapE1} />
+                                <FileLink label="BA Revisi 2 (E2)" url={recordData.fileTahapE2} />
+                                <FileLink label="BA Revisi 3 (E3)" url={recordData.fileTahapE3} />
+                                <FileLink label="BA Revisi 4 (E4)" url={recordData.fileTahapE4} />
+                                <FileLink label="BA Revisi 5 (E5)" url={recordData.fileTahapE5} />
+                                <FileLink label="RPD (G)" url={recordData.fileTahapG} />
+                                <FileLink label="Izin Terbit (Arsip)" url={recordData.filePKPLH} />
                             </tbody>
                         </table>
                     </div>
@@ -231,6 +299,17 @@ function FormKantorLH() {
         </div>
     );
 }
+
+// Helper kecil untuk membuat link file jika ada
+const FileLink = ({ label, url }) => {
+    if (!url) return null;
+    return (
+        <tr>
+            <th style={{padding:'8px', textAlign:'left'}}>File {label}</th>
+            <td style={{padding:'8px'}}>: <a href={url} target="_blank" rel="noopener noreferrer" className="file-link">Lihat File</a></td>
+        </tr>
+    );
+};
 
 export default FormKantorLH;
 

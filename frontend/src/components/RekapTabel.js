@@ -185,7 +185,7 @@ function RekapTabel() {
         // 4. Buat workbook dan unduh file
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Rekapitulasi Dokumen");
-        XLSX.writeFile(workbook, "Rekapitulasi_Dokumen_Perizinan.xlsx");
+        XLSX.writeFile(workbook, "Rekapitulasi Dokumen Perizinan.xlsx");
     };
 
     if (loading) {
