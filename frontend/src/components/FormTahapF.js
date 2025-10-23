@@ -14,7 +14,10 @@ function FormTahapF() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     
-    const [tahapFData, setTahapFData] = useState({ tanggalPHP: '' });
+    const [tahapFData, setTahapFData] = useState({ 
+        tanggalPenyerahanPerbaikan: '',
+        petugasPenerimaPerbaikan: ''
+   });
 
     const fetchRecord = useCallback(async (checklist) => {
         if (!checklist) {
@@ -27,6 +30,13 @@ function FormTahapF() {
         try {
             const response = await api.post(`/record/find`, { nomorChecklist: checklist });
             setRecordData(response.data.data);
+            // --- PERUBAHAN 2: Pre-fill form jika data sudah ada ---
+            if (response.data.data) {
+                setTahapFData({
+                    tanggalPenyerahanPerbaikan: response.data.data.tanggalPHP || '',
+                    petugasPenerimaPerbaikan: response.data.data.petugasPenerimaPerbaikan || ''
+                });
+            }
         } catch (err) {
             setRecordData(null);
             setError(err.response?.data?.message || 'Gagal mengambil data.');
@@ -41,6 +51,11 @@ function FormTahapF() {
         }, 800);
         return () => clearTimeout(handler);
     }, [nomorChecklist, fetchRecord]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setTahapFData(prev => ({ ...prev, [name]: value }));
+    };
 
     const handleApiSubmit = async (e) => {
         e.preventDefault();
@@ -63,7 +78,8 @@ function FormTahapF() {
                 }
                 
                 fetchRecord(nomorChecklist);
-                setTahapFData({ tanggalPHP: '' });
+                // --- PERUBAHAN 4: Reset form (termasuk field baru) ---
+                setTahapFData({ tanggalPenyerahanPerbaikan: '', petugasPenerimaPerbaikan: '' });
             }
         } catch (err) {
             alert(err.response?.data?.message || "Terjadi kesalahan");
@@ -91,11 +107,31 @@ function FormTahapF() {
             <form onSubmit={handleApiSubmit} style={{marginTop: '2rem'}}>
                 <fieldset>
                     <legend>Tahap F: Penerimaan Hasil Perbaikan Dokumen</legend>
-                    <div>
-                        <label htmlFor="tanggalPHP">Tanggal Menyerahkan Berkas Perbaikan</label>
-                        <input id="tanggalPenyerahanPerbaikan" type="date" value={tahapFData.tanggalPenyerahanPerbaikan}
-                            onChange={(e) => setTahapFData({ tanggalPHP: e.target.value })}
-                            required />
+                    {/* --- PERUBAHAN 5: Tambahkan input field baru --- */}
+                    <div className="form-grid">
+                        <div>
+                            <label htmlFor="tanggalPenyerahanPerbaikan">Tanggal Menyerahkan Berkas</label>
+                            <input 
+                                id="tanggalPenyerahanPerbaikan" 
+                                name="tanggalPenyerahanPerbaikan"
+                                type="date" 
+                                value={tahapFData.tanggalPenyerahanPerbaikan}
+                                onChange={handleChange}
+                                required 
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="petugasPenerimaPerbaikan">Nama Petugas yang Menerima</label>
+                            <input 
+                                id="petugasPenerimaPerbaikan"
+                                name="petugasPenerimaPerbaikan"
+                                type="text"
+                                value={tahapFData.petugasPenerimaPerbaikan}
+                                onChange={handleChange}
+                                placeholder="Nama petugas di MPP"
+                                required 
+                            />
+                        </div>
                     </div>
                 </fieldset>
                 <button type="submit" className="primary" disabled={!recordData} style={{marginTop: '1rem'}}>

@@ -233,7 +233,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
                 nomorRevisi3: "", tanggalRevisi3: "",
                 nomorRevisi4: "", tanggalRevisi4: "",
                 nomorRevisi5: "", tanggalRevisi5: "",
-                nomorPHP: "", tanggalPHP: "",
+                nomorPHP: "", tanggalPHP: "", petugasPenerimaPerbaikan: "", // <-- PERUBAHAN 1: Tambahkan field ini
                 nomorIzinTerbit: "", jenisPerizinan: "", nomorRisalah: "", tanggalRisalah: "",
                 checklistArsip: ""
             };
@@ -321,10 +321,18 @@ app.post('/api/submit/:tahap', async (req, res) => {
             updateQuery[targetFields.tgl] = tanggalRevisi;
         }
         else if (tahap === 'f') {
-            const { tanggalPHP } = req.body;
-            const tglParts = getDateParts(tanggalPHP);
+            // --- PERUBAHAN 2: Ambil 'petugasPenerimaPerbaikan' dari body ---
+            const { tanggalPenyerahanPerbaikan, petugasPenerimaPerbaikan } = req.body;
+            const tglParts = getDateParts(tanggalPenyerahanPerbaikan);
             generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/17/PHP.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
-            updateQuery = { nomorPHP: generatedNomor, tanggalPHP: tanggalPHP };
+            
+            // --- PERUBAHAN 3: Tambahkan field baru ke query update ---
+            updateQuery = { 
+                nomorPHP: generatedNomor, 
+                tanggalPHP: tanggalPenyerahanPerbaikan, 
+                tanggalPengembalian: "",
+                petugasPenerimaPerbaikan: petugasPenerimaPerbaikan // Simpan nama petugas
+            };
         }
         else if (tahap === 'g') {
             const { tanggalPembuatanRisalah } = req.body;
