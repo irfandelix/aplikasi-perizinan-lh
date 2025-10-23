@@ -496,6 +496,13 @@ app.post('/api/dokumen/upload-drive', upload.single('file'), async (req, res) =>
         if (req.file) fs.unlinkSync(req.file.path); // Pastikan file sementara dihapus jika ada error
         res.status(500).json({ success: false, message: 'Gagal meng-upload file ke Google Drive.' });
     }
+
+    // TAMBAHKAN BLOK DEBUG INI
+    console.log('--- DEBUG UPLOAD GOOGLE DRIVE ---');
+    console.log('Folder ID yang akan dipakai:', folderId);
+    console.log('Client Email yang dipakai:', clientEmail);
+    console.log('Apakah Private Key ada?:', privateKey ? 'Ya, ada' : 'Tidak ada/Kosong');
+    console.log('------------------------------------');
 });
 
 // --- ENDPOINT UNTUK FITUR ARSIP DINAMIS ---
