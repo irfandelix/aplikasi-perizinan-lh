@@ -71,7 +71,22 @@ const rekapTableStyles = `
 
     /* --- STYLE BARU UNTUK GARIS PEMBATAS --- */
     .rekap-table .col-3 {
-        border-right: 2px solid #adb5bd; /* Abu-abu gelap */
+        border-right: 2px solid #adb5bd; /* Abu-abu gelap */}
+
+    /* --- CSS BARU UNTUK TOMBOL EXCEL --- */
+    .excel-button {
+        background-color: #1D6F42; /* Warna hijau Excel */
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: background-color 0.2s;
+    }
+    .excel-button:hover {
+        background-color: #145230; /* Hijau lebih gelap */
     }
 `;
 
@@ -188,7 +203,7 @@ function RekapTabel() {
             {/* --- 3. TAMBAHKAN TOMBOL BARU DI SINI --- */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3>Rekapitulasi Seluruh Dokumen</h3>
-                <button onClick={handleDownloadExcel} className="success">
+                <button onClick={handleDownloadExcel} className='excel-button'>
                     Unduh Excel
                 </button>
             </div>
