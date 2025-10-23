@@ -72,13 +72,6 @@ async function getGlobalMaxSequentialNumber() {
 // ================= KONFIGURASI GOOGLE DRIVE =================
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
 const folderID = process.env.GOOGLE_DRIVE_FOLDER_ID;
-if (!folderId) {
-        console.error('ERROR: GOOGLE_DRIVE_FOLDER_ID tidak ditemukan di Vercel env!');
-        // Hentikan eksekusi atau kirim respons error
-        return res.status(500).json({ error: 'Konfigurasi server hilang' });
-    }
-// Log untuk memastikan nilainya benar (hapus nanti jika sudah berhasil)
-    console.log('Akan mengupload ke Folder ID:', folderId);
 let auth;
 
 // Logika "pintar" untuk Vercel vs Lokal
