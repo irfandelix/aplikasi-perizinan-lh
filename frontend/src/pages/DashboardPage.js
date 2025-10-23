@@ -10,6 +10,7 @@ import NotaDinasPage from './NotaDinasPage';
 import SuratKeluarPage from './SuratKeluarPage';
 import SummaryDashboard from '../components/SummaryDashboard';
 import SummaryByTypeDashboard from '../components/SummaryByTypeDashboard';
+import FormPengembalian from './FormPengembalian';
 
 
 // --- GAYA BARU DITAMBAHKAN DI SINI ---
@@ -64,11 +65,13 @@ function DashboardPage() {
         <div>
             <div className="tab-buttons">
                 <button onClick={() => setActiveTab('A')} className={activeTab === 'A' ? 'active' : ''}>Registrasi Dokumen</button>
-                <button onClick={() => setActiveTab('F')} className={activeTab === 'F' ? 'active' : ''}>Pengembalian Perbaikan Dokumen</button>
+                <button onClick={() => setActiveTab('Pengembalian')} className={activeTab === 'Pengembalian' ? 'active' : ''}>Pengembalian Dokumen</button>
+                <button onClick={() => setActiveTab('F')} className={activeTab === 'F' ? 'active' : ''}>Penerimaan Hasil Perbaikan Dokumen</button>
                 <button onClick={() => setActiveTab('Rekap')} className={activeTab === 'Rekap' ? 'active' : ''}>Rekap Data</button>
                 <button onClick={() => setActiveTab('Cetak')} className={activeTab === 'Cetak' ? 'active' : ''}>Cetak Ulang</button>
             </div>
             {activeTab === 'A' && <FormTahapA />}
+            {activeTab === 'Pengembalian' && <FormPengembalian />}
             {activeTab === 'F' && <FormTahapF />}
             {activeTab === 'Rekap' && <RekapTabel />}
             {activeTab === 'Cetak' && <CetakUlang />}

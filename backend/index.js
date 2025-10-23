@@ -235,7 +235,7 @@ app.post('/api/submit/:tahap', async (req, res) => {
                 nomorRevisi5: "", tanggalRevisi5: "",
                 nomorPHP: "", tanggalPHP: "", petugasPenerimaPerbaikan: "", // <-- PERUBAHAN 1: Tambahkan field ini
                 nomorIzinTerbit: "", jenisPerizinan: "", nomorRisalah: "", tanggalRisalah: "",
-                checklistArsip: ""
+                checklistArsip: "", tanggalPengembalian: ""
             };
             
             const result = await db.collection(COLLECTION_NAME).insertOne(newRecord);
@@ -330,7 +330,6 @@ app.post('/api/submit/:tahap', async (req, res) => {
             updateQuery = { 
                 nomorPHP: generatedNomor, 
                 tanggalPHP: tanggalPenyerahanPerbaikan, 
-                tanggalPengembalian: "",
                 petugasPenerimaPerbaikan: petugasPenerimaPerbaikan // Simpan nama petugas
             };
         }
@@ -344,6 +343,11 @@ app.post('/api/submit/:tahap', async (req, res) => {
             const tglParts = getDateParts(tanggalPembuatanRisalah);
             generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/RPD.${jenisPerizinanSingkat}/17/${tglParts.year}`;
             updateQuery = { tanggalRisalah: tanggalPembuatanRisalah, nomorRisalah: generatedNomor };
+        }
+        // --- PERUBAHAN 3: LOGIKA BARU UNTUK PENGEMBALIAN DOKUMEN ---
+        else if (tahap === 'pengembalian') {
+            const { tanggalPengembalian } = req.body;
+            updateQuery = { tanggalPengembalian: tanggalPengembalian };
         }
         else if (tahap === 'arsip_perizinan') {
             const { checklistArsip, nomorIzinTerbit } = req.body;
