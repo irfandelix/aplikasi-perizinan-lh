@@ -71,8 +71,14 @@ async function getGlobalMaxSequentialNumber() {
 
 // ================= KONFIGURASI GOOGLE DRIVE =================
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
-const folderID = process.env.GOOGLE_DRIVE_FOLDER_ID;
+const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
 let auth;
+
+if (!folderId) {
+      console.error('FATAL ERROR: GOOGLE_DRIVE_FOLDER_ID tidak diatur di Vercel!');
+      // Kirim respons error ke klien
+      return res.status(500).json({ error: 'Konfigurasi server tidak lengkap' });
+  }
 
 // Logika "pintar" untuk Vercel vs Lokal
 if (process.env.NODE_ENV === 'production') {
@@ -457,7 +463,7 @@ app.post('/api/dokumen/upload-drive', upload.single('file'), async (req, res) =>
         const response = await drive.files.create({
             requestBody: {
                 name: `${fileType}_${noUrut}_${file.originalname}`,
-                parents: [folderID],
+                parents: [folderId],
             },
             media: {
                 mimeType: file.mimetype,
