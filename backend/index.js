@@ -4,6 +4,10 @@ const { MongoClient } = require('mongodb');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv').config();
+const { google } = require('googleapis'); // <-- ALAT BARU
+const multer = require('multer'); // <-- ALAT BARU
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(cors());
@@ -65,6 +69,45 @@ async function getGlobalMaxSequentialNumber() {
     return maxNumber;
 }
 
+// ================= KONFIGURASI GOOGLE DRIVE =================
+const SCOPES = ['https://www.googleapis.com/auth/drive'];
+const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
+let auth;
+
+// Logika "pintar" untuk Vercel vs Lokal
+if (process.env.NODE_ENV === 'production') {
+    // Di Vercel: Baca dari Environment Variable
+    console.log("Menjalankan di mode Produksi (Vercel).");
+    const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+    auth = new google.auth.GoogleAuth({
+        credentials,
+        scopes: SCOPES,
+    });
+    console.log("Autentikasi Google Drive menggunakan Vercel Environment Variables.");
+} else {
+    // Di Lokal: Baca dari file .json
+    console.log("Menjalankan di mode Development (Lokal).");
+    const KEYFILEPATH = path.join(__dirname, 'drive-credentials.json');
+    if (fs.existsSync(KEYFILEPATH)) {
+        auth = new google.auth.GoogleAuth({
+            keyFile: KEYFILEPATH,
+            scopes: SCOPES,
+        });
+        console.log("Autentikasi Google Drive menggunakan file credentials.json lokal.");
+    } else {
+        console.error("Error: File 'drive-credentials.json' tidak ditemukan di folder backend.");
+        console.log("Pastikan Anda sudah mengikuti panduan-google-drive.md");
+    }
+}
+
+const drive = google.drive({ version: 'v3', auth });
+
+// Konfigurasi Multer (penyimpanan file sementara)
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)){
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+const upload = multer({ dest: uploadDir });
 
 // ================= API ENDPOINTS =================
 
@@ -235,7 +278,18 @@ app.post('/api/submit/:tahap', async (req, res) => {
                 nomorRevisi5: "", tanggalRevisi5: "",
                 nomorPHP: "", tanggalPHP: "", petugasPenerimaPerbaikan: "", // <-- PERUBAHAN 1: Tambahkan field ini
                 nomorIzinTerbit: "", jenisPerizinan: "", nomorRisalah: "", tanggalRisalah: "",
-                checklistArsip: "", tanggalPengembalian: ""
+                checklistArsip: "", tanggalPengembalian: "",
+                // --- FIELD BARU UNTUK MENYIMPAN LINK FILE ---
+                fileTahapB: "", // BA HUA
+                fileTahapC: "", // BA Verlap
+                fileTahapD: "", // BA Pemeriksaan
+                fileTahapE1: "", // Revisi 1
+                fileTahapE2: "",
+                fileTahapE3: "",
+                fileTahapE4: "",
+                fileTahapE5: "",
+                fileTahapG: "", // RPD
+                filePKPLH: "" // Izin Terbit
             };
             
             const result = await db.collection(COLLECTION_NAME).insertOne(newRecord);
@@ -374,7 +428,63 @@ app.post('/api/submit/:tahap', async (req, res) => {
     }
 });
 
+// --- ENDPOINT BARU UNTUK UPLOAD KE GOOGLE DRIVE ---
+app.post('/api/dokumen/upload-drive', upload.single('file'), async (req, res) => {
+    try {
+        const { file } = req;
+        const { noUrut, dbField, fileType } = req.body;
 
+        if (!file || !noUrut || !dbField || !fileType) {
+            fs.unlinkSync(file.path); // Hapus file sementara
+            return res.status(400).json({ success: false, message: 'Data tidak lengkap.' });
+        }
+
+        console.log(`Menerima file untuk No Urut ${noUrut}, Tipe: ${fileType}`);
+
+        // 1. Upload file ke Google Drive
+        const response = await drive.files.create({
+            requestBody: {
+                name: `${fileType}_${noUrut}_${file.originalname}`,
+                parents: [DRIVE_FOLDER_ID],
+            },
+            media: {
+                mimeType: file.mimetype,
+                body: fs.createReadStream(file.path),
+            },
+            fields: 'id, webViewLink', // Minta link untuk dilihat
+        });
+
+        // 2. Buat file agar bisa dibagikan
+        await drive.permissions.create({
+            fileId: response.data.id,
+            requestBody: {
+                role: 'reader',
+                type: 'anyone',
+            },
+        });
+
+        const fileUrl = response.data.webViewLink; // Link pratinjau Google Drive
+        console.log(`File diupload, link: ${fileUrl}`);
+
+        // 3. Hapus file sementara dari server
+        fs.unlinkSync(file.path);
+
+        // 4. Simpan link ke MongoDB
+        const db = await connectToDb();
+        const updateQuery = { $set: { [dbField]: fileUrl } };
+        await db.collection(COLLECTION_DOKUMEN).updateOne(
+            { noUrut: parseInt(noUrut) },
+            updateQuery
+        );
+
+        res.status(200).json({ success: true, message: 'File berhasil di-upload ke Google Drive!', fileUrl });
+
+    } catch (error) {
+        console.error("Error di /api/dokumen/upload-drive:", error);
+        if (req.file) fs.unlinkSync(req.file.path); // Pastikan file sementara dihapus jika ada error
+        res.status(500).json({ success: false, message: 'Gagal meng-upload file ke Google Drive.' });
+    }
+});
 
 // --- ENDPOINT UNTUK FITUR ARSIP DINAMIS ---
 app.get('/api/arsip/kode', async (req, res) => {
