@@ -10,7 +10,7 @@ import NotaDinasPage from './NotaDinasPage';
 import SuratKeluarPage from './SuratKeluarPage';
 import SummaryDashboard from '../components/SummaryDashboard';
 import SummaryByTypeDashboard from '../components/SummaryByTypeDashboard';
-import FormPengembalian from './FormPengembalian';
+import FormPengembalian from '../components/FormPengembalian';
 
 
 // --- GAYA BARU DITAMBAHKAN DI SINI ---
