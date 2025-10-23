@@ -103,7 +103,7 @@ function CetakTahapF({ data }) {
                             </td>
                             <td style={{ verticalAlign: 'top', textAlign: 'center', padding: '8px', border: '1px solid black', height: '120px' }}>
                                 <b>Petugas Gerai Mal Pelayanan Publik</b>
-                                <p style={{ marginTop: '80px' }}>({data.namaPetugas})</p>
+                                <p style={{ marginTop: '80px' }}>({data.petugasPenerimaPerbaikan})</p>
                             </td>
                         </tr>
                     </tbody>
