@@ -41,6 +41,10 @@ function FormKantorLH() {
     const [tahapGData, setTahapGData] = useState({ tanggalPembuatanRisalah: '' });
     const [arsipData, setArsipData] = useState({ nomorIzinTerbit: '', checklistArsip: {} });
 
+    // --- PERBAIKAN DI SINI: Tambahkan state yang hilang ---
+    const [pengembalianData, setPengembalianData] = useState({ tanggalPengembalian: '' });
+
+    // Modifikasi fetchRecord agar bisa dipanggil ulang
     const fetchRecord = useCallback(async (checklist) => {
         if (!checklist) {
             setRecordData(null);
@@ -75,6 +79,8 @@ function FormKantorLH() {
                 nomorIzinTerbit: recordData.nomorIzinTerbit || '',
                 checklistArsip: checkState
             });
+            // --- PERBAIKAN DI SINI: Isi state pengembalian ---
+            setPengembalianData({ tanggalPengembalian: recordData.tanggalPengembalian || '' });
         }
     }, [recordData]);
 
@@ -105,6 +111,10 @@ function FormKantorLH() {
             alert(response.data.message);
             fetchRecord(nomorChecklist); // Ambil ulang data untuk refresh
             if (callback) callback();
+
+            // --- PERBAIKAN DI SINI: Reset state pengembalian ---
+            if (endpoint === 'pengembalian') setPengembalianData({ tanggalPengembalian: '' });
+        
         } catch (err) {
             alert(err.response?.data?.message || "Terjadi kesalahan");
         }
