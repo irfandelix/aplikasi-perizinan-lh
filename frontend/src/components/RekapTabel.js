@@ -188,7 +188,7 @@ function RekapTabel() {
             {/* --- 3. TAMBAHKAN TOMBOL BARU DI SINI --- */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3>Rekapitulasi Seluruh Dokumen</h3>
-                <button onClick={handleDownloadExcel} className="secondary">
+                <button onClick={handleDownloadExcel} className="success">
                     Unduh Excel
                 </button>
             </div>
