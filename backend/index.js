@@ -102,12 +102,24 @@ if (process.env.NODE_ENV === 'production') {
 
 const drive = google.drive({ version: 'v3', auth });
 
-// Konfigurasi Multer (penyimpanan file sementara)
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)){
-    fs.mkdirSync(uploadDir, { recursive: true });
+// --- PERBAIKAN LOGIKA MULTER DI SINI ---
+let uploadDir;
+
+if (process.env.NODE_ENV === 'production') {
+    // Di Vercel, gunakan folder /tmp yang dijamin ada dan bisa ditulis
+    uploadDir = '/tmp';
+    console.log("Multer akan menggunakan direktori sementara Vercel: /tmp");
+} else {
+    // Di Lokal, buat folder 'uploads' jika belum ada
+    uploadDir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(uploadDir)){
+        fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    console.log(`Multer akan menggunakan direktori lokal: ${uploadDir}`);
 }
+
 const upload = multer({ dest: uploadDir });
+// --- BATAS PERBAIKAN ---
 
 // ================= API ENDPOINTS =================
 
