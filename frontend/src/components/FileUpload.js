@@ -48,9 +48,10 @@ const uploadStyles = `
  * @param {string} fileType - Jenis file (misal: "BA_V", "BA_P", "PKPLH")
  * @param {string} dbField - Nama field di database (misal: "fileTahapC", "fileTahapD", "filePKPLH")
  * @param {string} currentFileUrl - URL file yang sudah ada (jika ada)
+ * @param {string} namaKegiatan - NAMA KEGIATAN DARI DOKUMEN INDUK (BARU!)
  * @param {function} onUploadSuccess - Fungsi untuk me-refresh data di induk
  */
-function FileUpload({ noUrut, fileType, dbField, currentFileUrl, onUploadSuccess }) {
+function FileUpload({ noUrut, fileType, dbField, currentFileUrl, onUploadSuccess, namaKegiatan }) {
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
@@ -69,6 +70,12 @@ function FileUpload({ noUrut, fileType, dbField, currentFileUrl, onUploadSuccess
             alert("Error: Nomor Urut tidak ditemukan. Pastikan dokumen sudah dipilih.");
             return;
         }
+        // PERUBAHAN 2: Validasi namaKegiatan
+        if (!namaKegiatan) {
+            alert("Error: Nama Kegiatan tidak ditemukan. Upload dibatalkan.");
+            console.error("namaKegiatan prop is missing or empty.");
+            return;
+        }
 
         setLoading(true);
         setMessage('Meng-upload file ke server...');
@@ -79,6 +86,7 @@ function FileUpload({ noUrut, fileType, dbField, currentFileUrl, onUploadSuccess
         formData.append('noUrut', noUrut);
         formData.append('dbField', dbField);
         formData.append('fileType', fileType);
+        formData.append('namaKegiatan', namaKegiatan);
 
         try {
             // Panggil "pintu" API baru di backend
