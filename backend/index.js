@@ -457,21 +457,24 @@ app.post('/api/dokumen/upload-drive', upload.single('file'), async (req, res) =>
             return res.status(500).json({ success: false, message: 'Layanan Google Drive tidak terinisialisasi. Cek log server.' });
         }
 
+        // --- PERUBAHAN DI SINI: Ambil namaKegiatan dari req.body ---
         const { file } = req;
-        const { noUrut, dbField, fileType } = req.body;
+        const { noUrut, dbField, fileType, namaKegiatan } = req.body; // <-- TAMBAH NAMA KEGIATAN
 
-        if (!file || !noUrut || !dbField || !fileType) {
+        if (!file || !noUrut || !dbField || !fileType || !namaKegiatan) { // <-- Pastikan semua lengkap
             if (file) fs.unlinkSync(file.path);
-            return res.status(400).json({ success: false, message: 'Data atau file tidak lengkap.' });
+            return res.status(400).json({ success: false, message: 'Data atau file tidak lengkap. (Pastikan namaKegiatan terkirim).' });
         }
 
-        console.log(`Menerima file untuk No Urut ${noUrut}, Tipe: ${fileType}`);
+        console.log(`Menerima file untuk No Urut ${noUrut}, Tipe: ${fileType}, Kegiatan: ${namaKegiatan}`);
 
         // 1. Upload file ke Google Drive (Menggunakan Auth Pengguna)
         const response = await drive.files.create({
             requestBody: {
-                name: `${fileType}_${noUrut}_${file.originalname}`,
-                // Gunakan FOLDER_ID_UPLOAD (defaultnya 'root' / My Drive Anda)
+                // --- PERBAIKAN NAMA FILE DI SINI ---
+                name: `${fileType}_${noUrut}_${namaKegiatan.replace(/[\/\\?%*:|"<>]/g, '_')}_${file.originalname}`,
+                // Ganti karakter ilegal (\ / ? * : | " < >) dengan underscore (_) agar nama file aman
+                // ------------------------------------
                 parents: [FOLDER_ID_UPLOAD], 
                 mimeType: file.mimetype,
             },
