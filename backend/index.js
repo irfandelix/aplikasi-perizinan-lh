@@ -86,12 +86,10 @@ if (!folderId) {
 if (process.env.NODE_ENV === 'production') {
     // Di Vercel: Baca dari Environment Variable
     console.log("Menjalankan di mode Produksi (Vercel).");
-    const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
     auth = new google.auth.GoogleAuth({
         credentials:{
-            client_email: credentials.client_email,
-            private_key: credentials.private_key,
-            client_id: credentials.client_id,
+            client_email: clientEmail,
+            private_key: privateKey.replace(/\\n/g, '\n'),
         },
         scopes: SCOPES,
     });
