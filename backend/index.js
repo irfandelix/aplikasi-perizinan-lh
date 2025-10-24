@@ -23,6 +23,18 @@ const COLLECTION_KODE = 'kode_klarifikasi';
 
 let db;
 
+// --- VARIABEL AUTH OAUTH 2.0 ---
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
+const REFRESH_TOKEN = process.env.GOOGLE_REFRESH_TOKEN; // Kunci permanen Anda!
+const FOLDER_ID_UPLOAD = process.env.GOOGLE_DRIVE_FOLDER_ID || 'root'; // 'root' jika tidak ada folder spesifik
+
+// SCOPE TETAP SAMA
+const SCOPES = ['https://www.googleapis.com/auth/drive']; 
+
+let drive;
+
 // Fungsi koneksi ke DB
 async function connectToDb() {
     if (db) return db;
@@ -69,63 +81,42 @@ async function getGlobalMaxSequentialNumber() {
     return maxNumber;
 }
 
-// ================= KONFIGURASI GOOGLE DRIVE =================
-const SCOPES = ['https://www.googleapis.com/auth/drive'];
-const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID;
-const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
-const privateKey = process.env.GOOGLE_PRIVATE_KEY;
-let auth;
+// ================= FUNGSI AUTH DAN KONEKSI =================
 
-if (!folderId) {
-      console.error('FATAL ERROR: GOOGLE_DRIVE_FOLDER_ID tidak diatur di Vercel!');
-      // Kirim respons error ke klien
-      return res.status(500).json({ error: 'Konfigurasi server tidak lengkap' });
-  }
-
-// Logika "pintar" untuk Vercel vs Lokal
-if (process.env.NODE_ENV === 'production') {
-    // Di Vercel: Baca dari Environment Variable
-    console.log("Menjalankan di mode Produksi (Vercel).");
-    auth = new google.auth.GoogleAuth({
-        credentials:{
-            client_email: clientEmail,
-            private_key: privateKey.replace(/\\n/g, '\n'),
-        },
-        scopes: SCOPES,
-    });
-    console.log("Autentikasi Google Drive menggunakan Vercel Environment Variables.");
-} else {
-    // Di Lokal: Baca dari file .json
-    console.log("Menjalankan di mode Development (Lokal).");
-    const KEYFILEPATH = path.join(__dirname, 'drive-credentials.json');
-    if (fs.existsSync(KEYFILEPATH)) {
-        auth = new google.auth.GoogleAuth({
-            keyFile: KEYFILEPATH,
-            scopes: SCOPES,
-        });
-        console.log("Autentikasi Google Drive menggunakan file credentials.json lokal.");
-    } else {
-        console.error("Error: File 'drive-credentials.json' tidak ditemukan di folder backend.");
-        console.log("Pastikan Anda sudah mengikuti panduan-google-drive.md");
+// 2. Inisialisasi Google Drive dengan OAuth 2.0
+function initializeGoogleDrive() {
+    if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
+        console.error("FATAL ERROR: Kunci OAuth (Client ID, Secret, atau Refresh Token) belum diatur di Vercel!");
+        return;
     }
+
+    const oauth2Client = new google.auth.OAuth2(
+        CLIENT_ID,
+        CLIENT_SECRET,
+        REDIRECT_URI
+    );
+
+    // Menyetel Refresh Token agar bisa otomatis mendapatkan Access Token baru
+    oauth2Client.setCredentials({ refresh_token: REFRESH_TOKEN });
+    
+    // Otentikasi dan buat objek drive
+    drive = google.drive({ version: 'v3', auth: oauth2Client });
+    console.log("Autentikasi Google Drive dengan OAuth Refresh Token berhasil diinisialisasi.");
 }
 
-const drive = google.drive({ version: 'v3', auth });
+// Panggil fungsi inisialisasi saat server dimulai
+initializeGoogleDrive(); 
 
-// --- PERBAIKAN LOGIKA MULTER DI SINI ---
+// ================= PERBAIKAN MULTER =================
 let uploadDir;
 
 if (process.env.NODE_ENV === 'production') {
-    // Di Vercel, gunakan folder /tmp yang dijamin ada dan bisa ditulis
-    uploadDir = '/tmp';
-    console.log("Multer akan menggunakan direktori sementara Vercel: /tmp");
+    uploadDir = '/tmp'; // Di Vercel, hanya /tmp yang bisa ditulis
 } else {
-    // Di Lokal, buat folder 'uploads' jika belum ada
     uploadDir = path.join(__dirname, 'uploads');
     if (!fs.existsSync(uploadDir)){
         fs.mkdirSync(uploadDir, { recursive: true });
     }
-    console.log(`Multer akan menggunakan direktori lokal: ${uploadDir}`);
 }
 
 const upload = multer({ dest: uploadDir });
@@ -452,31 +443,46 @@ app.post('/api/submit/:tahap', async (req, res) => {
 
 // --- ENDPOINT BARU UNTUK UPLOAD KE GOOGLE DRIVE ---
 app.post('/api/dokumen/upload-drive', upload.single('file'), async (req, res) => {
+    
+    // --- DEBUGGING: CEK APAKAH SEMUA KUNCI SUDAH TERBACA ---
+    console.log('--- DEBUG UPLOAD GOOGLE DRIVE ---');
+    console.log('Refresh Token ada?:', REFRESH_TOKEN ? 'Ya' : 'TIDAK ADA');
+    console.log('Drive Client terinisialisasi?:', !!drive);
+    console.log('Folder/Root ID yang akan dipakai:', FOLDER_ID_UPLOAD);
+    console.log('------------------------------------');
+    // --- AKHIR DEBUGGING ---
+
     try {
+        if (!drive) {
+            return res.status(500).json({ success: false, message: 'Layanan Google Drive tidak terinisialisasi. Cek log server.' });
+        }
+
         const { file } = req;
         const { noUrut, dbField, fileType } = req.body;
 
         if (!file || !noUrut || !dbField || !fileType) {
-            fs.unlinkSync(file.path); // Hapus file sementara
-            return res.status(400).json({ success: false, message: 'Data tidak lengkap.' });
+            if (file) fs.unlinkSync(file.path);
+            return res.status(400).json({ success: false, message: 'Data atau file tidak lengkap.' });
         }
 
         console.log(`Menerima file untuk No Urut ${noUrut}, Tipe: ${fileType}`);
 
-        // 1. Upload file ke Google Drive
+        // 1. Upload file ke Google Drive (Menggunakan Auth Pengguna)
         const response = await drive.files.create({
             requestBody: {
                 name: `${fileType}_${noUrut}_${file.originalname}`,
-                parents: [folderId],
+                // Gunakan FOLDER_ID_UPLOAD (defaultnya 'root' / My Drive Anda)
+                parents: [FOLDER_ID_UPLOAD], 
+                mimeType: file.mimetype,
             },
             media: {
                 mimeType: file.mimetype,
                 body: fs.createReadStream(file.path),
             },
-            fields: 'id, webViewLink', // Minta link untuk dilihat
+            fields: 'id, webViewLink',
         });
 
-        // 2. Buat file agar bisa dibagikan
+        // 2. Buat file agar bisa dibagikan secara publik (Opsional tapi disarankan)
         await drive.permissions.create({
             fileId: response.data.id,
             requestBody: {
@@ -494,7 +500,7 @@ app.post('/api/dokumen/upload-drive', upload.single('file'), async (req, res) =>
         // 4. Simpan link ke MongoDB
         const db = await connectToDb();
         const updateQuery = { $set: { [dbField]: fileUrl } };
-        await db.collection(COLLECTION_DOKUMEN).updateOne(
+        await db.collection(COLLECTION_NAME).updateOne( // Menggunakan COLLECTION_NAME yang benar
             { noUrut: parseInt(noUrut) },
             updateQuery
         );
@@ -504,15 +510,14 @@ app.post('/api/dokumen/upload-drive', upload.single('file'), async (req, res) =>
     } catch (error) {
         console.error("Error di /api/dokumen/upload-drive:", error);
         if (req.file) fs.unlinkSync(req.file.path); // Pastikan file sementara dihapus jika ada error
+        
+        // Cek error Google API yang spesifik (misal token kadaluarsa)
+        if (error.code === 401) {
+            return res.status(401).json({ success: false, message: 'Otentikasi Google Drive gagal. Refresh Token mungkin tidak valid atau sudah dicabut.' });
+        }
+        
         res.status(500).json({ success: false, message: 'Gagal meng-upload file ke Google Drive.' });
     }
-
-    // TAMBAHKAN BLOK DEBUG INI
-    console.log('--- DEBUG UPLOAD GOOGLE DRIVE ---');
-    console.log('Folder ID yang akan dipakai:', folderId);
-    console.log('Client Email yang dipakai:', clientEmail);
-    console.log('Apakah Private Key ada?:', privateKey ? 'Ya, ada' : 'Tidak ada/Kosong');
-    console.log('------------------------------------');
 });
 
 // --- ENDPOINT UNTUK FITUR ARSIP DINAMIS ---
