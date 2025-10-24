@@ -88,7 +88,11 @@ if (process.env.NODE_ENV === 'production') {
     console.log("Menjalankan di mode Produksi (Vercel).");
     const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
     auth = new google.auth.GoogleAuth({
-        credentials,
+        credentials:{
+            client_email: credentials.client_email,
+            private_key: credentials.private_key,
+            client_id: credentials.client_id,
+        },
         scopes: SCOPES,
     });
     console.log("Autentikasi Google Drive menggunakan Vercel Environment Variables.");
