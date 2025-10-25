@@ -86,7 +86,7 @@ function FileUpload({ noUrut, fileType, dbField, currentFileUrl, onUploadSuccess
         formData.append('noUrut', noUrut);
         formData.append('dbField', dbField);
         formData.append('fileType', fileType);
-        formData.append('namaKegiatan', namaKegiatan);
+        formData.append('namaKegiatan', namaKegiatan); // <-- TAMBAH PROP INI!
 
         try {
             // Panggil "pintu" API baru di backend

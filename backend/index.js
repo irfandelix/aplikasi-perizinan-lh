@@ -456,25 +456,25 @@ app.post('/api/dokumen/upload-drive', upload.single('file'), async (req, res) =>
         if (!drive) {
             return res.status(500).json({ success: false, message: 'Layanan Google Drive tidak terinisialisasi. Cek log server.' });
         }
-
-        // --- PERUBAHAN DI SINI: Ambil namaKegiatan dari req.body ---
+        // --- PERUBAHAN KRUSIAL DI SINI ---
         const { file } = req;
-        const { noUrut, dbField, fileType, namaKegiatan } = req.body; // <-- TAMBAH NAMA KEGIATAN
-
-        if (!file || !noUrut || !dbField || !fileType || !namaKegiatan) { // <-- Pastikan semua lengkap
+        // 1. Ambil namaKegiatan dari req.body (seperti sebelumnya)
+        const { noUrut, dbField, fileType, namaKegiatan } = req.body; 
+        // 2. Jadikan namaKegiatan wajib di pengecekan
+        if (!file || !noUrut || !dbField || !fileType || !namaKegiatan) { 
             if (file) fs.unlinkSync(file.path);
-            return res.status(400).json({ success: false, message: 'Data atau file tidak lengkap. (Pastikan namaKegiatan terkirim).' });
+            // Kirim pesan yang jelas untuk membantu frontend
+            return res.status(400).json({ success: false, message: 'Data atau file tidak lengkap. (Pastikan No Urut, Tipe File, dan Nama Kegiatan terkirim).' });
         }
 
-        console.log(`Menerima file untuk No Urut ${noUrut}, Tipe: ${fileType}, Kegiatan: ${namaKegiatan}`);
+        // 3. TIDAK ADA QUERY MONGODB DI SINI! (Dihapus)
 
+        console.log(`Menerima file untuk No Urut ${noUrut}, Tipe: ${fileType}, Kegiatan: ${namaKegiatan}`);
         // 1. Upload file ke Google Drive (Menggunakan Auth Pengguna)
         const response = await drive.files.create({
             requestBody: {
-                // --- PERBAIKAN NAMA FILE DI SINI ---
+                // Gunakan namaKegiatan dari req.body yang sudah divalidasi
                 name: `${fileType}_${noUrut}_${namaKegiatan.replace(/[\/\\?%*:|"<>]/g, '_')}_${file.originalname}`,
-                // Ganti karakter ilegal (\ / ? * : | " < >) dengan underscore (_) agar nama file aman
-                // ------------------------------------
                 parents: [FOLDER_ID_UPLOAD], 
                 mimeType: file.mimetype,
             },
@@ -503,11 +503,10 @@ app.post('/api/dokumen/upload-drive', upload.single('file'), async (req, res) =>
         // 4. Simpan link ke MongoDB
         const db = await connectToDb();
         const updateQuery = { $set: { [dbField]: fileUrl } };
-        await db.collection(COLLECTION_NAME).updateOne( // Menggunakan COLLECTION_NAME yang benar
+        await db.collection(COLLECTION_NAME).updateOne(
             { noUrut: parseInt(noUrut) },
             updateQuery
         );
-
         res.status(200).json({ success: true, message: 'File berhasil di-upload ke Google Drive!', fileUrl });
 
     } catch (error) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
-import FileUpload from './FileUpload'; // <-- PERUBAHAN 1: IMPORT KOMPONEN BARU
+import FileUpload from './FileUpload'; // <-- IMPORT KOMPONEN BARU
 
 const tableStyles = `
     .record-table {
@@ -33,15 +33,13 @@ function FormKantorLH() {
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('B');
     
-    // --- NAMA STATE DI SINI DIPERBARUI SEMUA MENJADI camelCase & SESUAI LOGIKA BARU ---
+    // ... (Semua state lain tidak berubah)
     const [tahapBData, setTahapBData] = useState({ tanggalPenerbitanUa: '' });
     const [tahapCData, setTahapCData] = useState({ tanggalVerifikasi: '' });
     const [tahapDData, setTahapDData] = useState({ tanggalPemeriksaan: '' });
     const [tahapEData, setTahapEData] = useState({ tanggalRevisi: '', nomorRevisi: '1' });
     const [tahapGData, setTahapGData] = useState({ tanggalPembuatanRisalah: '' });
     const [arsipData, setArsipData] = useState({ nomorIzinTerbit: '', checklistArsip: {} });
-
-    // --- PERBAIKAN DI SINI: Tambahkan state yang hilang ---
     const [pengembalianData, setPengembalianData] = useState({ tanggalPengembalian: '' });
 
     // Modifikasi fetchRecord agar bisa dipanggil ulang
@@ -64,7 +62,7 @@ function FormKantorLH() {
         }
     }, []);
 
-    // --- EFFECT BARU: Mengisi form dengan data yang sudah ada ---
+    // ... (useEffect untuk pre-fill form tidak berubah)
     useEffect(() => {
         if (recordData) {
             setTahapBData({ tanggalPenerbitanUa: recordData.tanggalUjiBerkas || '' });
@@ -79,11 +77,11 @@ function FormKantorLH() {
                 nomorIzinTerbit: recordData.nomorIzinTerbit || '',
                 checklistArsip: checkState
             });
-            // --- PERBAIKAN DI SINI: Isi state pengembalian ---
             setPengembalianData({ tanggalPengembalian: recordData.tanggalPengembalian || '' });
         }
     }, [recordData]);
 
+    // ... (useEffect untuk debounce tidak berubah)
     useEffect(() => {
         const handler = setTimeout(() => {
             fetchRecord(nomorChecklist);
@@ -91,6 +89,7 @@ function FormKantorLH() {
         return () => clearTimeout(handler);
     }, [nomorChecklist, fetchRecord]);
 
+    // ... (handleApiSubmit tidak berubah)
     const handleApiSubmit = async (endpoint, payload, callback) => {
         if (!recordData) return alert("Pilih dokumen yang valid terlebih dahulu.");
         
@@ -110,16 +109,13 @@ function FormKantorLH() {
             });
             alert(response.data.message);
             fetchRecord(nomorChecklist); // Ambil ulang data untuk refresh
-            if (callback) callback();
-
-            // --- PERBAIKAN DI SINI: Reset state pengembalian ---
-            if (endpoint === 'pengembalian') setPengembalianData({ tanggalPengembalian: '' });
-        
+            if (callback) callback(); // Jalankan callback jika ada (untuk membuka tab cetak)
         } catch (err) {
             alert(err.response?.data?.message || "Terjadi kesalahan");
         }
     };
     
+    // ... (handleArsipChange tidak berubah)
     const handleArsipChange = (e) => {
         const { name, value, type, checked } = e.target;
         if (type === 'checkbox') {
@@ -132,17 +128,16 @@ function FormKantorLH() {
         }
     };
 
-// --- PERUBAHAN 2: Tambahkan komponen <FileUpload /> di setiap tab ---
     const renderFormContent = () => {
         if (!recordData) return null;
         const noUrut = recordData.noUrut;
+        const namaKegiatan = recordData.namaKegiatan; // <-- Ambil nama kegiatan
 
         if (activeTab === 'B') {
             return (
                 <div>
                     <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('b', tahapBData); }}> <fieldset><legend>Tahap B: Hasil Uji Administrasi</legend><div><label>Tanggal Penerbitan Uji Administrasi</label><input type="date" value={tahapBData.tanggalPenerbitanUa} onChange={(e) => setTahapBData({ tanggalPenerbitanUa: e.target.value })} required /></div></fieldset> <button type="submit" className="primary">Simpan Tahap B</button> </form>
-                    {/* Tambahkan komponen upload di sini */}
-                    <FileUpload noUrut={noUrut} fileType="BA HUA" dbField="fileTahapB" currentFileUrl={recordData.fileTahapB} onUploadSuccess={() => fetchRecord(nomorChecklist)} />
+                    <FileUpload noUrut={noUrut} fileType="BA HUA" dbField="fileTahapB" currentFileUrl={recordData.fileTahapB} onUploadSuccess={() => fetchRecord(nomorChecklist)} namaKegiatan={namaKegiatan} />
                 </div>
             );
         }
@@ -150,8 +145,7 @@ function FormKantorLH() {
             return (
                 <div>
                     <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('c', tahapCData); }}> <fieldset><legend>Tahap C: Verifikasi Lapangan</legend><div><label>Tanggal Verifikasi Lapangan</label><input type="date" value={tahapCData.tanggalVerifikasi} onChange={(e) => setTahapCData({ tanggalVerifikasi: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap C</button> </form>
-                    {/* Tambahkan komponen upload di sini */}
-                    <FileUpload noUrut={noUrut} fileType="BA Verlap" dbField="fileTahapC" currentFileUrl={recordData.fileTahapC} onUploadSuccess={() => fetchRecord(nomorChecklist)} />
+                    <FileUpload noUrut={noUrut} fileType="BA Verlap" dbField="fileTahapC" currentFileUrl={recordData.fileTahapC} onUploadSuccess={() => fetchRecord(nomorChecklist)} namaKegiatan={namaKegiatan} />
                 </div>
             );
         }
@@ -159,8 +153,7 @@ function FormKantorLH() {
             return (
                 <div>
                     <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('d', tahapDData); }}> <fieldset><legend>Tahap D: Pemeriksaan Berkas</legend><div><label>Tanggal Pemeriksaan Berkas</label><input type="date" value={tahapDData.tanggalPemeriksaan} onChange={(e) => setTahapDData({ tanggalPemeriksaan: e.target.value })} /></div></fieldset> <button type="submit" className="primary">Simpan Tahap D</button> </form>
-                    {/* Tambahkan komponen upload di sini */}
-                    <FileUpload noUrut={noUrut} fileType="BA Pemeriksaan" dbField="fileTahapD" currentFileUrl={recordData.fileTahapD} onUploadSuccess={() => fetchRecord(nomorChecklist)} />
+                    <FileUpload noUrut={noUrut} fileType="BA Pemeriksaan" dbField="fileTahapD" currentFileUrl={recordData.fileTahapD} onUploadSuccess={() => fetchRecord(nomorChecklist)} namaKegiatan={namaKegiatan} />
                 </div>
             );
         }
@@ -170,8 +163,7 @@ function FormKantorLH() {
             return (
                 <div>
                     <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('e', tahapEData); }}> <fieldset> <legend>Tahap E: Pemeriksaan Revisi</legend> <div className="form-grid"> <div> <label>Pilih Revisi</label> <select name="nomorRevisi" value={tahapEData.nomorRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, nomorRevisi: e.target.value }))}> <option value="1">Revisi 1</option> <option value="2">Revisi 2</option> <option value="3">Revisi 3</option> <option value="4">Revisi 4</option> <option value="5">Revisi 5</option> </select> </div> <div> <label>Tanggal Pemeriksaan Revisi</label> <input type="date" name="tanggalRevisi" value={tahapEData.tanggalRevisi} onChange={(e) => setTahapEData(prev => ({ ...prev, tanggalRevisi: e.target.value }))} required /> </div> </div> </fieldset> <button type="submit" className="primary">Simpan Revisi</button> </form>
-                    {/* Tambahkan komponen upload di sini */}
-                    <FileUpload noUrut={noUrut} fileType={`BA Revisi ${tahapEData.nomorRevisi}`} dbField={dbField} currentFileUrl={currentUrl} onUploadSuccess={() => fetchRecord(nomorChecklist)} />
+                    <FileUpload noUrut={noUrut} fileType={`BA Revisi ${tahapEData.nomorRevisi}`} dbField={dbField} currentFileUrl={currentUrl} onUploadSuccess={() => fetchRecord(nomorChecklist)} namaKegiatan={namaKegiatan} />
                 </div>
             );
         }
@@ -179,8 +171,7 @@ function FormKantorLH() {
             return (
                 <div>
                     <form onSubmit={(e) => { e.preventDefault(); handleApiSubmit('g', tahapGData); }}> <fieldset><legend>Tahap G: Risalah Pengolahan Data</legend><div> <label>Tanggal Pembuatan Risalah</label> <input type="date" value={tahapGData.tanggalPembuatanRisalah} onChange={(e) => setTahapGData({ tanggalPembuatanRisalah: e.target.value })} required /> </div> </fieldset> <button type="submit" className="primary">Simpan Tanggal Risalah</button> </form>
-                    {/* Tambahkan komponen upload di sini */}
-                    <FileUpload noUrut={noUrut} fileType="RPD" dbField="fileTahapG" currentFileUrl={recordData.fileTahapG} onUploadSuccess={() => fetchRecord(nomorChecklist)} />
+                    <FileUpload noUrut={noUrut} fileType="RPD" dbField="fileTahapG" currentFileUrl={recordData.fileTahapG} onUploadSuccess={() => fetchRecord(nomorChecklist)} namaKegiatan={namaKegiatan} />
                 </div>
             );
         }
@@ -212,8 +203,7 @@ function FormKantorLH() {
                         </fieldset>
                         <button type="submit" className="primary">Simpan & Cetak Arsip</button>
                     </form>
-                    {/* Tambahkan komponen upload di sini */}
-                    <FileUpload noUrut={noUrut} fileType="Izin Terbit (Final)" dbField="filePKPLH" currentFileUrl={recordData.filePKPLH} onUploadSuccess={() => fetchRecord(nomorChecklist)} />
+                    <FileUpload noUrut={noUrut} fileType="Izin Terbit (Final)" dbField="filePKPLH" currentFileUrl={recordData.filePKPLH} onUploadSuccess={() => fetchRecord(nomorChecklist)} namaKegiatan={namaKegiatan} />
                 </div>
             );
         }
@@ -257,12 +247,12 @@ function FormKantorLH() {
                         <button onClick={() => setActiveTab('D')} className={activeTab === 'D' ? 'active' : ''}>Tahap D</button>
                         <button onClick={() => setActiveTab('E')} className={activeTab === 'E' ? 'active' : ''}>Tahap E (Revisi)</button>
                         <button onClick={() => setActiveTab('G')} className={activeTab === 'G' ? 'active' : ''}>Tahap G</button>
+                        <button onClick={() => setActiveTab('Pengembalian')} className={activeTab === 'Pengembalian' ? 'active' : ''}>Pengembalian</button>
                         <button onClick={() => setActiveTab('Arsip')} className={activeTab === 'Arsip' ? 'active' : ''}>Arsip</button>
                     </div>
                     
                     {renderFormContent()}
 
-                     {/* --- PERUBAHAN 3: Tampilkan link file di tabel detail --- */}
                     <div style={{ marginTop: '2rem' }}>
                         <h4>Detail Dokumen (No. Urut: {recordData.noUrut})</h4>
                         <table className="record-table">
