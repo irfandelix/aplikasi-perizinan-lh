@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
-import FileUpload from './FileUpload'; // <-- IMPORT KOMPONEN BARU
+import FileUpload from './FileUpload';
+import Modal from './Modal'; // <-- 1. IMPORT MODAL (tanpa CSS)
 
 const tableStyles = `
     .record-table {
@@ -33,7 +34,7 @@ function FormKantorLH() {
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('B');
     
-    // ... (Semua state lain tidak berubah)
+    // ... (State lain tidak berubah)
     const [tahapBData, setTahapBData] = useState({ tanggalPenerbitanUa: '' });
     const [tahapCData, setTahapCData] = useState({ tanggalVerifikasi: '' });
     const [tahapDData, setTahapDData] = useState({ tanggalPemeriksaan: '' });
@@ -42,7 +43,23 @@ function FormKantorLH() {
     const [arsipData, setArsipData] = useState({ nomorIzinTerbit: '', checklistArsip: {} });
     const [pengembalianData, setPengembalianData] = useState({ tanggalPengembalian: '' });
 
-    // Modifikasi fetchRecord agar bisa dipanggil ulang
+    // --- 2. TAMBAHKAN STATE UNTUK MODAL ---
+    const [modalInfo, setModalInfo] = useState({
+        show: false,
+        title: '',
+        message: ''
+    });
+
+    // --- 3. TAMBAHKAN FUNGSI UNTUK MENUTUP & MEMBUKA MODAL ---
+    const closeModal = () => {
+        setModalInfo({ show: false, title: '', message: '' });
+    };
+
+    const showModal = (title, message) => {
+        setModalInfo({ show: true, title, message });
+    };
+
+    // ... (fetchRecord tidak berubah)
     const fetchRecord = useCallback(async (checklist) => {
         if (!checklist) {
             setRecordData(null);
@@ -56,6 +73,7 @@ function FormKantorLH() {
             setRecordData(response.data.data);
         } catch (err) {
             setRecordData(null);
+            // Anda bisa juga gunakan modal di sini jika mau
             setError(err.response?.data?.message || 'Gagal mengambil data.');
         } finally {
             setLoading(false);
@@ -89,25 +107,25 @@ function FormKantorLH() {
         return () => clearTimeout(handler);
     }, [nomorChecklist, fetchRecord]);
 
-    // --- FUNGSI INI YANG DIPERBAIKI ---
-    // (Kembali ke versi asli, lalu ditambahkan logika baru)
+    // --- 4. MODIFIKASI handleApiSubmit UNTUK MENGGUNAKAN showModal() ---
     const handleApiSubmit = async (endpoint, payload, callback) => {
-        if (!recordData) return alert("Pilih dokumen yang valid terlebih dahulu.");
+        if (!recordData) {
+            showModal("Error", "Pilih dokumen yang valid terlebih dahulu."); // GANTI ALERT
+            return;
+        }
         
-        // --- PERUBAHAN BARU DIMULAI ---
-        // Cek jika user mencoba submit Tahap E atau G
-        // Ini adalah pengaman ganda (fallback)
         if (endpoint === 'e' || endpoint === 'g') {
-            const fileCExists = recordData.fileTahapC; // URL file C
-            const fileDExists = recordData.fileTahapD; // URL file D
+            const fileCExists = recordData.fileTahapC;
+            const fileDExists = recordData.fileTahapD;
             
-            // Jika file C DAN file D KEDUANYA tidak ada, blokir
             if (!fileCExists && !fileDExists) {
-                alert("Gagal menyimpan. Harap upload file BA Verifikasi Lapangan (Tahap C) atau BA Pemeriksaan (Tahap D) terlebih dahulu.");
-                return; // Hentikan submit
+                showModal( // GANTI ALERT
+                    "Tahap Belum Terbuka", 
+                    "Harap upload file BA Verifikasi Lapangan (Tahap C) atau BA Pemeriksaan (Tahap D) terlebih dahulu."
+                );
+                return; 
             }
         }
-        // --- PERUBAHAN BARU SELESAI ---
 
         let finalPayload = { ...payload };
         if (endpoint === 'arsip_perizinan') {
@@ -123,11 +141,11 @@ function FormKantorLH() {
                 noUrut: recordData.noUrut,
                 ...finalPayload 
             });
-            alert(response.data.message);
-            fetchRecord(nomorChecklist); // Ambil ulang data untuk refresh
-            if (callback) callback(); // Jalankan callback jika ada (untuk membuka tab cetak)
+            showModal("Sukses", response.data.message); // GANTI ALERT
+            fetchRecord(nomorChecklist);
+            if (callback) callback();
         } catch (err) {
-            alert(err.response?.data?.message || "Terjadi kesalahan");
+            showModal("Terjadi Kesalahan", err.response?.data?.message || "Gagal terhubung ke server."); // GANTI ALERT
         }
     };
     
@@ -144,30 +162,31 @@ function FormKantorLH() {
         }
     };
 
-    // --- FUNGSI BARU UNTUK MENGUNCI TAB ---
+    // --- 5. MODIFIKASI handleTabClick UNTUK MENGGUNAKAN showModal() ---
     const handleTabClick = (tabName) => {
-        // Cek jika user mencoba mengakses Tahap E atau G
         if (tabName === 'E' || tabName === 'G') {
-            if (!recordData) return; // Seharusnya tidak terjadi, tapi untuk jaga-jaga
+            if (!recordData) return;
 
             const fileCExists = recordData.fileTahapC;
             const fileDExists = recordData.fileTahapD;
 
-            // Jika KEDUA file (C dan D) tidak ada, tampilkan alert dan jangan pindah tab
             if (!fileCExists && !fileDExists) {
-                alert("Harap upload file BA Verifikasi Lapangan (Tahap C) dan/atau BA Pemeriksaan (Tahap D) terlebih dahulu sebelum melanjutkan ke tahap ini.");
-                return; // <-- Ini yang penting: jangan panggil setActiveTab
+                showModal( // GANTI ALERT
+                    "Tahap Belum Terbuka",
+                    "Harap upload file BA Verifikasi Lapangan (Tahap C) dan/atau BA Pemeriksaan (Tahap D) terlebih dahulu sebelum melanjutkan ke tahap ini."
+                );
+                return;
             }
         }
         
-        // Jika lolos pengecekan (atau tab lain), pindah tab seperti biasa
         setActiveTab(tabName);
     };
 
+    // ... (renderFormContent tidak berubah)
     const renderFormContent = () => {
         if (!recordData) return null;
         const noUrut = recordData.noUrut;
-        const namaKegiatan = recordData.namaKegiatan; // <-- Ambil nama kegiatan
+        const namaKegiatan = recordData.namaKegiatan;
 
         if (activeTab === 'B') {
             return (
@@ -223,8 +242,8 @@ function FormKantorLH() {
                                 <input type="text" name="nomorIzinTerbit" value={arsipData.nomorIzinTerbit} onChange={handleArsipChange} />
                             </div>
                             <table className="record-table">
-                               <thead><tr><th style={{width:'5%'}}>No</th><th>Dokumen</th><th style={{width:'15%'}}>Checklist</th></tr></thead>
-                               <tbody>
+                                <thead><tr><th style={{width:'5%'}}>No</th><th>Dokumen</th><th style={{width:'15%'}}>Checklist</th></tr></thead>
+                                <tbody>
                                     {arsipChecklistItems.map((item, index) => (
                                         <tr key={item}>
                                             <td style={{textAlign:'center'}}>{index + 1}</td>
@@ -263,6 +282,7 @@ function FormKantorLH() {
         return null;
     };
 
+    // --- 6. RENDER KOMPONEN MODAL DI DALAM JSX ---
     return (
         <div>
             <style>{tableStyles}</style>
@@ -315,8 +335,7 @@ function FormKantorLH() {
                                 {recordData.nomorRevisi5 && ( <tr><th>Nomor BA Revisi 5</th><td><span>{recordData.nomorRevisi5}</span> ({recordData.tanggalRevisi5})</td></tr> )}
                                 {recordData.nomorPHP && (<><tr><th>Nomor Penerimaan Hasil Perbaikan</th><td><span>{recordData.nomorPHP}</span></td></tr><tr><th>Tanggal Penerimaan Hasil Perbaikan</th><td>{recordData.tanggalPHP}</td></tr></>)}
                                 {recordData.nomorRisalah && (<><tr><th>Nomor Izin Terbit</th><td><span>{recordData.nomorIzinTerbit}</span></td></tr><tr><th>Jenis Perizinan</th><td>{recordData.jenisPerizinan}</td></tr><tr><th>Nomor Risalah</th><td><span>{recordData.nomorRisalah}</span></td></tr><tr><th>Tanggal Risalah</th><td>{recordData.tanggalRisalah}</td></tr></>)}
-                            
-                                {/* Menampilkan link file yang sudah di-upload */}
+                                
                                 <FileLink label="BA HUA (B)" url={recordData.fileTahapB} />
                                 <FileLink label="BA Verlap (C)" url={recordData.fileTahapC} />
                                 <FileLink label="BA Pemeriksaan (D)" url={recordData.fileTahapD} />
@@ -332,6 +351,15 @@ function FormKantorLH() {
                     </div>
                 </>
             )}
+
+            {/* --- 7. RENDER MODAL DI SINI --- */}
+            <Modal
+                show={modalInfo.show}
+                title={modalInfo.title}
+                onClose={closeModal}
+            >
+                <p>{modalInfo.message}</p>
+            </Modal>
         </div>
     );
 }
@@ -348,4 +376,3 @@ const FileLink = ({ label, url }) => {
 };
 
 export default FormKantorLH;
-

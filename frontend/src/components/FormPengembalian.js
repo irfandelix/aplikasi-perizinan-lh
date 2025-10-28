@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
+import Modal from './Modal'; // <-- 1. IMPORT MODAL
 
 const tableStyles = `
     .record-table {
@@ -33,6 +34,21 @@ function FormPengembalian() {
     
     const [tanggalPengembalian, setTanggalPengembalian] = useState('');
 
+    // --- 2. TAMBAHKAN STATE & FUNGSI UNTUK MODAL ---
+    const [modalInfo, setModalInfo] = useState({
+        show: false,
+        title: '',
+        message: ''
+    });
+
+    const closeModal = () => {
+        setModalInfo({ show: false, title: '', message: '' });
+    };
+
+    const showModal = (title, message) => {
+        setModalInfo({ show: true, title, message });
+    };
+
     const fetchRecord = useCallback(async (checklist) => {
         if (!checklist) {
             setRecordData(null);
@@ -60,10 +76,11 @@ function FormPengembalian() {
         return () => clearTimeout(handler);
     }, [nomorChecklist, fetchRecord]);
 
+    // --- 3. MODIFIKASI handleApiSubmit ---
     const handleApiSubmit = async (e) => {
         e.preventDefault();
         if (!recordData) {
-            alert("Pilih dokumen yang valid terlebih dahulu.");
+            showModal("Error", "Pilih dokumen yang valid terlebih dahulu."); // GANTI ALERT
             return;
         }
         try {
@@ -72,10 +89,11 @@ function FormPengembalian() {
                 tanggalPengembalian: tanggalPengembalian
             });
             
-            alert('Status pengembalian dokumen berhasil disimpan!');
+            showModal("Sukses", 'Status pengembalian dokumen berhasil disimpan!'); // GANTI ALERT
             fetchRecord(nomorChecklist); // Refresh data
         } catch (err) {
-            alert(err.response?.data?.message || "Terjadi kesalahan");
+            const errorMessage = err.response?.data?.message || "Terjadi kesalahan";
+            showModal("Terjadi Kesalahan", errorMessage); // GANTI ALERT
         }
     };
 
@@ -119,6 +137,15 @@ function FormPengembalian() {
                     </button>
                 </form>
             )}
+
+            {/* --- 4. RENDER MODAL DI AKHIR --- */}
+            <Modal
+                show={modalInfo.show}
+                title={modalInfo.title}
+                onClose={closeModal}
+            >
+                <p>{modalInfo.message}</p>
+            </Modal>
         </div>
     );
 }

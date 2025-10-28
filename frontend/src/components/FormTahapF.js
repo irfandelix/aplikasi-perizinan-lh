@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api';
+import Modal from './Modal'; // <-- 1. IMPORT MODAL
 
 const tableStyles = `
     .record-table { width: 100%; border-collapse: collapse; margin-top: 1.5rem; font-size: 0.9rem; }
@@ -19,6 +20,21 @@ function FormTahapF() {
         petugasPenerimaPerbaikan: ''
    });
 
+    // --- 2. TAMBAHKAN STATE & FUNGSI UNTUK MODAL ---
+    const [modalInfo, setModalInfo] = useState({
+        show: false,
+        title: '',
+        message: ''
+    });
+
+    const closeModal = () => {
+        setModalInfo({ show: false, title: '', message: '' });
+    };
+
+    const showModal = (title, message) => {
+        setModalInfo({ show: true, title, message });
+    };
+
     const fetchRecord = useCallback(async (checklist) => {
         if (!checklist) {
             setRecordData(null);
@@ -30,7 +46,6 @@ function FormTahapF() {
         try {
             const response = await api.post(`/record/find`, { nomorChecklist: checklist });
             setRecordData(response.data.data);
-            // --- PERUBAHAN 2: Pre-fill form jika data sudah ada ---
             if (response.data.data) {
                 setTahapFData({
                     tanggalPenyerahanPerbaikan: response.data.data.tanggalPHP || '',
@@ -57,10 +72,11 @@ function FormTahapF() {
         setTahapFData(prev => ({ ...prev, [name]: value }));
     };
 
+    // --- 3. MODIFIKASI handleApiSubmit ---
     const handleApiSubmit = async (e) => {
         e.preventDefault();
         if (!recordData) {
-            alert("Pilih dokumen yang valid terlebih dahulu.");
+            showModal("Error", "Pilih dokumen yang valid terlebih dahulu."); // GANTI ALERT
             return;
         }
         try {
@@ -70,23 +86,31 @@ function FormTahapF() {
             });
             
             if (response.data.success) {
-                alert(response.data.message);
-                                
+                // Coba buka tab baru
                 const printWindow = window.open(`/penerimaan/${recordData.noUrut}`, '_blank');
-                if (!printWindow) {
-                    alert('Gagal membuka jendela cetak. Mohon izinkan pop-up untuk situs ini.');
-                }
                 
+                // Refresh data
                 fetchRecord(nomorChecklist);
-                // --- PERUBAHAN 4: Reset form (termasuk field baru) ---
                 setTahapFData({ tanggalPenyerahanPerbaikan: '', petugasPenerimaPerbaikan: '' });
+
+                // Tampilkan modal sukses (dengan atau tanpa peringatan popup)
+                if (!printWindow) {
+                    showModal(
+                        "Sukses (Peringatan)", 
+                        `${response.data.message}\n\nGagal membuka jendela cetak. Mohon izinkan pop-up untuk situs ini.`
+                    );
+                } else {
+                    showModal("Sukses", response.data.message);
+                }
             }
         } catch (err) {
-            alert(err.response?.data?.message || "Terjadi kesalahan");
+            const errorMessage = err.response?.data?.message || "Terjadi kesalahan";
+            showModal("Terjadi Kesalahan", errorMessage); // GANTI ALERT
         }
     };
 
     return (
+        // --- 4. RENDER MODAL DI DALAM ROOT <div> ---
         <div>
             <style>{tableStyles}</style>
             <fieldset>
@@ -107,7 +131,6 @@ function FormTahapF() {
             <form onSubmit={handleApiSubmit} style={{marginTop: '2rem'}}>
                 <fieldset>
                     <legend>Tahap F: Penerimaan Hasil Perbaikan Dokumen</legend>
-                    {/* --- PERUBAHAN 5: Tambahkan input field baru --- */}
                     <div className="form-grid">
                         <div>
                             <label htmlFor="tanggalPenyerahanPerbaikan">Tanggal Menyerahkan Berkas</label>
@@ -139,7 +162,6 @@ function FormTahapF() {
                 </button>
             </form>
 
-            {/* ===== TABEL DETAIL SEKARANG DIBUAT LENGKAP ===== */}
             {recordData && (
                 <div style={{ marginTop: '2rem' }}>
                     <h4>Detail Dokumen (No. Urut: {recordData.noUrut})</h4>
@@ -152,7 +174,8 @@ function FormTahapF() {
                             <tr><th>Lokasi Kegiatan</th><td>{recordData.lokasiKegiatan}</td></tr>
                             <tr><th>Jenis Kegiatan</th><td>{recordData.jenisKegiatan}</td></tr>
                             <tr><th>Jenis Dokumen</th><td>{recordData.jenisDokumen}</td></tr>
-                            <tr><th>Tanggal Masuk Dokumen</th><td>{recordData.tanggalPHP}</td></tr>
+                            {/* Perbaikan: Ini seharusnya tanggalMasukDokumen asli, bukan tanggalPHP */}
+                            <tr><th>Tanggal Masuk Dokumen Awal</th><td>{recordData.tanggalMasukDokumen}</td></tr>
                             <tr><th>Nama Pemrakarsa</th><td>{recordData.namaPemrakarsa} ({recordData.teleponPemrakarsa})</td></tr>
                             <tr><th>Nama Konsultan</th><td>{recordData.namaKonsultan} ({recordData.teleponKonsultan})</td></tr>
                             <tr><th>Petugas Penerima di MPP</th><td>{recordData.namaPetugas}</td></tr>
@@ -197,11 +220,21 @@ function FormTahapF() {
                     </table>
                 </div>
             )}
+
+            {/* --- 5. RENDER MODAL DI AKHIR --- */}
+            <Modal
+                show={modalInfo.show}
+                title={modalInfo.title}
+                onClose={closeModal}
+            >
+                {/* Menggunakan <p> tidak akan merender \n (newline).
+                  Kita ubah jadi <div> dengan style CSS 'white-space: pre-wrap'
+                  (Style ini sudah ada di Modal.js yang kita buat sebelumnya)
+                */}
+                {modalInfo.message}
+            </Modal>
         </div>
     );
 }
 
 export default FormTahapF;
-
-
-
