@@ -89,10 +89,26 @@ function FormKantorLH() {
         return () => clearTimeout(handler);
     }, [nomorChecklist, fetchRecord]);
 
-    // ... (handleApiSubmit tidak berubah)
+    // --- FUNGSI INI YANG DIPERBAIKI ---
+    // (Kembali ke versi asli, lalu ditambahkan logika baru)
     const handleApiSubmit = async (endpoint, payload, callback) => {
         if (!recordData) return alert("Pilih dokumen yang valid terlebih dahulu.");
         
+        // --- PERUBAHAN BARU DIMULAI ---
+        // Cek jika user mencoba submit Tahap E atau G
+        // Ini adalah pengaman ganda (fallback)
+        if (endpoint === 'e' || endpoint === 'g') {
+            const fileCExists = recordData.fileTahapC; // URL file C
+            const fileDExists = recordData.fileTahapD; // URL file D
+            
+            // Jika file C DAN file D KEDUANYA tidak ada, blokir
+            if (!fileCExists && !fileDExists) {
+                alert("Gagal menyimpan. Harap upload file BA Verifikasi Lapangan (Tahap C) atau BA Pemeriksaan (Tahap D) terlebih dahulu.");
+                return; // Hentikan submit
+            }
+        }
+        // --- PERUBAHAN BARU SELESAI ---
+
         let finalPayload = { ...payload };
         if (endpoint === 'arsip_perizinan') {
             const checkedItemsString = Object.keys(payload.checklistArsip).filter(key => payload.checklistArsip[key]).join(', ');
@@ -126,6 +142,26 @@ function FormKantorLH() {
         } else {
             setArsipData(prev => ({ ...prev, [name]: value }));
         }
+    };
+
+    // --- FUNGSI BARU UNTUK MENGUNCI TAB ---
+    const handleTabClick = (tabName) => {
+        // Cek jika user mencoba mengakses Tahap E atau G
+        if (tabName === 'E' || tabName === 'G') {
+            if (!recordData) return; // Seharusnya tidak terjadi, tapi untuk jaga-jaga
+
+            const fileCExists = recordData.fileTahapC;
+            const fileDExists = recordData.fileTahapD;
+
+            // Jika KEDUA file (C dan D) tidak ada, tampilkan alert dan jangan pindah tab
+            if (!fileCExists && !fileDExists) {
+                alert("Harap upload file BA Verifikasi Lapangan (Tahap C) dan/atau BA Pemeriksaan (Tahap D) terlebih dahulu sebelum melanjutkan ke tahap ini.");
+                return; // <-- Ini yang penting: jangan panggil setActiveTab
+            }
+        }
+        
+        // Jika lolos pengecekan (atau tab lain), pindah tab seperti biasa
+        setActiveTab(tabName);
     };
 
     const renderFormContent = () => {
@@ -242,13 +278,13 @@ function FormKantorLH() {
             {recordData && (
                 <>
                     <div className="tab-buttons" style={{ marginTop: '2rem' }}>
-                        <button onClick={() => setActiveTab('B')} className={activeTab === 'B' ? 'active' : ''}>Tahap B</button>
-                        <button onClick={() => setActiveTab('C')} className={activeTab === 'C' ? 'active' : ''}>Tahap C</button>
-                        <button onClick={() => setActiveTab('D')} className={activeTab === 'D' ? 'active' : ''}>Tahap D</button>
-                        <button onClick={() => setActiveTab('E')} className={activeTab === 'E' ? 'active' : ''}>Tahap E (Revisi)</button>
-                        <button onClick={() => setActiveTab('G')} className={activeTab === 'G' ? 'active' : ''}>Tahap G</button>
-                        <button onClick={() => setActiveTab('Pengembalian')} className={activeTab === 'Pengembalian' ? 'active' : ''}>Pengembalian</button>
-                        <button onClick={() => setActiveTab('Arsip')} className={activeTab === 'Arsip' ? 'active' : ''}>Arsip</button>
+                        <button onClick={() => handleTabClick('B')} className={activeTab === 'B' ? 'active' : ''}>Tahap B</button>
+                        <button onClick={() => handleTabClick('C')} className={activeTab === 'C' ? 'active' : ''}>Tahap C</button>
+                        <button onClick={() => handleTabClick('D')} className={activeTab === 'D' ? 'active' : ''}>Tahap D</button>
+                        <button onClick={() => handleTabClick('E')} className={activeTab === 'E' ? 'active' : ''}>Tahap E (Revisi)</button>
+                        <button onClick={() => handleTabClick('G')} className={activeTab === 'G' ? 'active' : ''}>Tahap G</button>
+                        <button onClick={() => handleTabClick('Pengembalian')} className={activeTab === 'Pengembalian' ? 'active' : ''}>Pengembalian</button>
+                        <button onClick={() => handleTabClick('Arsip')} className={activeTab === 'Arsip' ? 'active' : ''}>Arsip</button>
                     </div>
                     
                     {renderFormContent()}
