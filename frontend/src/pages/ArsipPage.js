@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api';
 
-// --- PERUBAHAN 1: Definisi FileLink diperbaiki ---
-// Kita akan buat FileLink yang benar-benar menerapkan colSpan
-// dan memiliki logika untuk print vs layar.
+// -------------------------------------------------------------------
+// PENTING:
+// Hapus semua baris 'import FileLink from ...' dari atas file ini.
+// Kita akan gunakan definisi FileLink di bawah ini.
+// -------------------------------------------------------------------
+
+// --- PERBAIKAN 1: Komponen FileLink didefinisikan di sini ---
+// Komponen ini sekarang punya colSpan="2" DAN logika print/layar
 const FileLink = ({ label, url }) => {
     // Jika tidak ada url, jangan render baris ini sama sekali
     if (!url) return null;
@@ -33,7 +38,7 @@ const FileLink = ({ label, url }) => {
         </tr>
     );
 };
-// --- AKHIR PERUBAHAN 1 ---
+// --- AKHIR PERBAIKAN 1 ---
 
 
 function ArsipPage() {
@@ -71,7 +76,7 @@ function ArsipPage() {
     return (
         <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif', backgroundColor: 'white' }}>
             
-            {/* --- PERUBAHAN 2: Tambahkan CSS @media print --- */}
+            {/* --- PERBAIKAN 2: Tambahkan CSS @media print --- */}
             <style>
                 {`
                     /* Sembunyikan link URL saat di layar */
@@ -98,7 +103,7 @@ function ArsipPage() {
                     }
                 `}
             </style>
-            {/* --- AKHIR PERUBAHAN 2 --- */}
+            {/* --- AKHIR PERBAIKAN 2 --- */}
 
             <div className="no-print" style={{ marginBottom: '2rem', paddingBottom: '1rem', borderBottom: '1px solid #ccc', display: 'flex', justifyContent: 'space-between' }}>
                 <button onClick={() => navigate(-1)} className="secondary">Kembali</button>
@@ -109,10 +114,9 @@ function ArsipPage() {
             
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem', fontSize: '11pt' }} border="1">
                 <tbody>
-                    {/* Baris-baris ini sudah benar pakai colSpan="2" */}
                     <tr><th style={{width:'35%', padding:'8px', textAlign:'left'}}>Nama Dokumen</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.namaKegiatan}</td></tr>
                     <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor Surat Permohonan</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorSuratPermohonan}</td></tr>
-       _             <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor Checklist Kelengkapan</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorChecklist}</td></tr>
+                    <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor Checklist Kelengkapan</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorChecklist}</td></tr>
                     {recordData.nomorUjiBerkas && <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor BA Hasil Uji Administrasi</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorUjiBerkas}</td></tr>}
                     {recordData.nomorBAVerlap && <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor BA Verifikasi Lapangan</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorBAVerlap}</td></tr>}
                     {recordData.nomorBAPemeriksaan && <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor BA Pemeriksaan Berkas</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorBAPemeriksaan}</td></tr>}
@@ -120,7 +124,7 @@ function ArsipPage() {
                     {recordData.nomorPHP && <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor Penerimaan Hasil Perbaikan</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorPHP}</td></tr>}
                     {recordData.nomorRisalah && <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor Risalah Pengolahan Data</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorRisalah}</td></tr>}
                     
-                    {/* Komponen FileLink yang sudah diperbaiki akan dipanggil di sini */}
+                    {/* Komponen FileLink yang didefinisikan di atas akan dipanggil di sini */}
                     <FileLink label="BA HUA (B)" url={recordData.fileTahapB} />
                     <FileLink label="BA Verlap (C)" url={recordData.fileTahapC} />
                     <FileLink label="BA Pemeriksaan (D)" url={recordData.fileTahapD} />
@@ -130,23 +134,23 @@ function ArsipPage() {
                     <FileLink label="BA Revisi 4 (E4)" url={recordData.fileTahapE4} />
                     <FileLink label="BA Revisi 5 (E5)" url={recordData.fileTahapE5} />
                     <FileLink label="RPD (G)" url={recordData.fileTahapG} />
-               M      <FileLink label="Izin Terbit (Arsip)" url={recordData.filePKPLH} />
+                    <FileLink label="Izin Terbit (Arsip)" url={recordData.filePKPLH} />
                 </tbody>
             </table>
 
             {/* Tabel checklist di bawah ini tidak terpengaruh */}
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11pt' }} border="1">
+     _      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11pt' }} border="1">
                 <thead style={{backgroundColor:'#E7E6E6', textAlign:'center'}}>
-                    <tr>
+           _        <tr>
                         <th style={{width:'5%', padding:'8px'}}>No</th>
                         <th style={{padding:'8px'}}>Dokumen</th>
                         <th style={{width:'15%', padding:'8px'}}>Checklist</th>
                     </tr>
-   _           </thead>
+                </thead>
                 <tbody>
                     {arsipChecklistItems.map((item, index) => (
                         <tr key={item}>
-               _            <td style={{textAlign:'center', padding:'8px'}}>{index + 1}</td>
+                            <td style={{textAlign:'center', padding:'8px'}}>{index + 1}</td>
                             <td style={{padding:'8px'}}>{item}</td>
                             <td style={{height:'25px'}}></td>
                         </tr>
