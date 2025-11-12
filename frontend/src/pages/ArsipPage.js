@@ -8,7 +8,6 @@ const FileLink = ({ label, url }) => {
     return (
         <tr>
             <th style={{padding:'8px', textAlign:'left'}}>File {label}</th>
-            {/* Kita tambahkan colspan="2" agar formatnya rapi */}
             <td colSpan="2" style={{padding:'8px'}}>: <a href={url} target="_blank" rel="noopener noreferrer" className="file-link" style={{color: 'var(--primary-color)', fontWeight: '600'}}>{url}</a>
             </td>
         </tr>
@@ -48,29 +47,26 @@ function ArsipPage() {
         "BA Pemeriksaan Dokumen II/III/Dst.", "PKPLH / SPPL / SKKL", "Dokumen Lingkungan"
     ];
 
-    // --- FIX 'no-lone-blocks': Logika dipindah ke helper function ---
+    // --- SOLUSI 'no-lone-blocks': Logika dipindah ke fungsi ini ---
     const renderChecklistRows = () => {
-        {/*PENTING: GANTI NAMA FIELD DI BAWAH INI
-             Sesuaikan 'recordData.chk_...' dengan nama field boolean
-             true/false) yang Anda dapat dari API (database).
-         */}
+        /* GANTI NAMA FIELD DI BAWAH INI */
         const dataMap = {
-           "Surat Permohonan": recordData.chk_surat_permohonan, // GANTI SAYA
-           "BA Checklist Pelayanan (Kelengkapan Berkas)": recordData.chk_ba_pelayanan, // GANTI SAYA
-           "BA Hasil Uji Administrasi": recordData.chk_uji_admin, // GANTI SAYA
-           "BA Verifikasi Lapangan": recordData.chk_verlap, // GANTI SAYA
-           "Undangan": recordData.chk_undangan, // GANTI SAYA
-           "BA Pemeriksaan Dokumen": recordData.chk_ba_pemeriksaan, // GANTI SAYA
-           "Risalah Pengolahan Data": recordData.chk_risalah, // GANTI SAYA
-           "Surat Penyampaian Dokumen Hasil Perbaikan": recordData.chk_surat_perbaikan, // GANTI SAYA
-           "Tanda Terima Berkas Penerimaan Hasil Perbaikan": recordData.chk_tanda_terima, // GANTI SAYA
-           "BA Pemeriksaan Dokumen II/III/Dst.": recordData.chk_ba_pemeriksaan_lanjutan, // GANTI SAYA
-           "PKPLH / SPPL / SKKL": recordData.chk_izin_terbit, // GANTI SAYA
-           "Dokumen Lingkungan": recordData.chk_dokumen_lingkungan // GANTI SAYA
+           "Surat Permohonan": recordData.chk_surat_permohonan,
+           "BA Checklist Pelayanan (Kelengkapan Berkas)": recordData.chk_ba_pelayanan,
+           "BA Hasil Uji Administrasi": recordData.chk_uji_admin,
+           "BA Verifikasi Lapangan": recordData.chk_verlap,
+           "Undangan": recordData.chk_undangan,
+           "BA Pemeriksaan Dokumen": recordData.chk_ba_pemeriksaan,
+           "Risalah Pengolahan Data": recordData.chk_risalah,
+           "Surat Penyampaian Dokumen Hasil Perbaikan": recordData.chk_surat_perbaikan,
+           "Tanda Terima Berkas Penerimaan Hasil Perbaikan": recordData.chk_tanda_terima,
+           "BA Pemeriksaan Dokumen II/III/Dst.": recordData.chk_ba_pemeriksaan_lanjutan,
+           "PKPLH / SPPL / SKKL": recordData.chk_izin_terbit,
+           "Dokumen Lingkungan": recordData.chk_dokumen_lingkungan
         };
-        {/* Kode di bawah ini tidak perlu diubah lagi */}
+
         return arsipChecklistItems.map((item, index) => {
-            const isChecked = dataMap[item]; // Ini akan bernilai true atau false
+            const isChecked = dataMap[item];
             return (
                 <tr key={item}>
                     <td style={{textAlign:'center', padding:'8px'}}>{index + 1}</td>
@@ -88,10 +84,10 @@ function ArsipPage() {
 
             <h2 style={{ textAlign: 'center', fontWeight: 'bold' }}>Checklist Arsip Dokumen Perizinan</h2>
             
-            {/* --- FIX: Ini adalah TABEL 1 (Detail) --- */}
+            {/* --- TABEL 1: DETAIL (KONTEN SEBELUMNYA HILANG) --- */}
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem', fontSize: '11pt' }} border="1">
                 <tbody>
-                    {/* --- Konten detail yang benar (sebelumnya hilang) --- */}
+                    {/* Ini adalah konten tabel 1 yang benar */}
                     <tr><th style={{width:'35%', padding:'8px', textAlign:'left'}}>Nama Dokumen</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.namaKegiatan}</td></tr>
                     <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor Surat Permohonan</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorSuratPermohonan}</td></tr>
                     <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor Checklist Kelengkapan</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorChecklist}</td></tr>
@@ -100,9 +96,9 @@ function ArsipPage() {
                     {recordData.nomorBAPemeriksaan && <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor BA Pemeriksaan Berkas</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorBAPemeriksaan}</td></tr>}
                     {recordData.nomorIzinTerbit && <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor Izin Terbit</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorIzinTerbit}</td></tr>}
                     {recordData.nomorPHP && <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor Penerimaan Hasil Perbaikan</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorPHP}</td></tr>}
-                    {recordData.nomorRisalah && <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor Risalah Pengolahan Data</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorRisalah}</td></tr>}
+ Get                 {recordData.nomorRisalah && <tr><th style={{padding:'8px', textAlign:'left'}}>Nomor Risalah Pengolahan Data</th><td colSpan="2" style={{padding:'8px'}}>: {recordData.nomorRisalah}</td></tr>}
                     
-                    {/* --- FIX 'no-unused-vars': Memanggil FileLink di sini --- */}
+                    {/* --- SOLUSI 'no-unused-vars': Panggil FileLink di sini --- */}
                     <FileLink label="BA HUA (B)" url={recordData.fileTahapB} />
                     <FileLink label="BA Verlap (C)" url={recordData.fileTahapC} />
                     <FileLink label="BA Pemeriksaan (D)" url={recordData.fileTahapD} />
@@ -116,7 +112,7 @@ function ArsipPage() {
                 </tbody>
             </table>
 
-            {/* --- FIX: Ini adalah TABEL 2 (Checklist) --- */}
+            {/* --- TABEL 2: CHECKLIST (SEBELUMNYA KOSONG) --- */}
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11pt' }} border="1">
                 <thead style={{backgroundColor:'#E7E6E6', textAlign:'center'}}>
                     <tr>
@@ -125,10 +121,10 @@ function ArsipPage() {
                         <th style={{width:'15%', padding:'8px'}}>Checklist</th>
                     </tr>
                 </thead>
-                {/* --- FIX: Logika checklist dipanggil di sini --- */}
+                {/* --- SOLUSI: Memanggil fungsi helper di sini --- */}
                 <tbody>
                     {renderChecklistRows()}
- _            </tbody>
+                </tbody>
             </table>
         </div>
     );
