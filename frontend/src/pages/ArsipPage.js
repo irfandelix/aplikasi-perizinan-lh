@@ -27,7 +27,7 @@ function ArsipPage() {
                 const response = await api.get(`/record/${noUrut}`);
                 setRecordData(response.data.data);
             } catch (error) {
-  _              alert("Gagal mengambil data untuk arsip.");
+                alert("Gagal mengambil data untuk arsip.");
                 navigate('/dashboard');
             } finally {
                 setLoading(false);
