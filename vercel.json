@@ -21,10 +21,6 @@
       "dest": "/frontend/static/$1"
     },
     {
-      "src": "/manifest.json",
-      "dest": "/frontend/manifest.json"
-    },
-    {
       "src": "/favicon.ico",
       "dest": "/frontend/favicon.ico"
     },
