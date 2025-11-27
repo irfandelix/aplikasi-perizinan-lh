@@ -15,9 +15,10 @@ function FormTahapF() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     
-    const [tahapFData, setTahapFData] = useState({ 
+const [tahapFData, setTahapFData] = useState({ 
         tanggalPenyerahanPerbaikan: '',
-        petugasPenerimaPerbaikan: ''
+        petugasPenerimaPerbaikan: '',
+        nomorRevisi: '1' // <--- TAMBAHAN: Default ke 1
    });
 
     // --- 2. TAMBAHKAN STATE & FUNGSI UNTUK MODAL ---
@@ -91,7 +92,11 @@ function FormTahapF() {
                 
                 // Refresh data
                 fetchRecord(nomorChecklist);
-                setTahapFData({ tanggalPenyerahanPerbaikan: '', petugasPenerimaPerbaikan: '' });
+                setTahapFData({ 
+                    tanggalPenyerahanPerbaikan: '', 
+                    petugasPenerimaPerbaikan: '', 
+                    nomorRevisi: '1' // Reset ke 1
+                });
 
                 // Tampilkan modal sukses (dengan atau tanpa peringatan popup)
                 if (!printWindow) {
@@ -132,6 +137,21 @@ function FormTahapF() {
                 <fieldset>
                     <legend>Tahap F: Penerimaan Hasil Perbaikan Dokumen</legend>
                     <div className="form-grid">
+                        {/* --- INPUT BARU: PILIH PHP KE BERAPA --- */}
+                        <div>
+                            <label htmlFor="nomorRevisi">Penerimaan Hasil Perbaikan Ke-</label>
+                            <select 
+                                name="nomorRevisi" 
+                                value={tahapFData.nomorRevisi} 
+                                onChange={handleChange}
+                            >
+                                <option value="1">PHP Ke-1</option>
+                                <option value="2">PHP Ke-2</option>
+                                <option value="3">PHP Ke-3</option>
+                                <option value="4">PHP Ke-4</option>
+                                <option value="5">PHP Ke-5</option>
+                            </select>
+                        </div>
                         <div>
                             <label htmlFor="tanggalPenyerahanPerbaikan">Tanggal Menyerahkan Berkas</label>
                             <input 
@@ -204,15 +224,72 @@ function FormTahapF() {
                             {recordData.nomorRevisi4 && ( <tr><th>Nomor BA Revisi 4</th><td><span>{recordData.nomorRevisi4}</span> ({recordData.tanggalRevisi4})</td></tr> )}
                             {recordData.nomorRevisi5 && ( <tr><th>Nomor BA Revisi 5</th><td><span>{recordData.nomorRevisi5}</span> ({recordData.tanggalRevisi5})</td></tr> )}
                             
+                            {/* PHP Awal (Hasil dari Revisi 1) */}
                             {recordData.nomorPHP && (
                                 <>
                                     <tr>
-                                        <th>Nomor Penerimaan Hasil Perbaikan</th>
+                                        <th>Nomor PHP (Awal)</th>
                                         <td><span>{recordData.nomorPHP}</span></td>
                                     </tr>
                                     <tr>
-                                        <th>Tanggal Penerimaan Hasil Perbaikan</th>
-                                        <td>{recordData.tanggalPHP}</td>
+                                        <th>Tanggal & Petugas (PHP Awal)</th>
+                                        <td>{recordData.tanggalPHP} (Diterima oleh: {recordData.petugasPenerimaPerbaikan})</td>
+                                    </tr>
+                                </>
+                            )}
+
+                            {/* PHP 1 (Hasil dari Revisi 2) */}
+                            {recordData.nomorPHP1 && (
+                                <>
+                                    <tr>
+                                        <th>Nomor PHP 1 (Revisi 2)</th>
+                                        <td><span>{recordData.nomorPHP1}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tanggal & Petugas (PHP 1)</th>
+                                        <td>{recordData.tanggalPHP1} (Diterima oleh: {recordData.petugasPHP1})</td>
+                                    </tr>
+                                </>
+                            )}
+
+                            {/* PHP 2 (Hasil dari Revisi 3) */}
+                            {recordData.nomorPHP2 && (
+                                <>
+                                    <tr>
+                                        <th>Nomor PHP 2 (Revisi 3)</th>
+                                        <td><span>{recordData.nomorPHP2}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tanggal & Petugas (PHP 2)</th>
+                                        <td>{recordData.tanggalPHP2} (Diterima oleh: {recordData.petugasPHP2})</td>
+                                    </tr>
+                                </>
+                            )}
+
+                            {/* PHP 3 (Hasil dari Revisi 4) */}
+                            {recordData.nomorPHP2 && (
+                                <>
+                                    <tr>
+                                        <th>Nomor PHP 3 (Revisi 4)</th>
+                                        <td><span>{recordData.nomorPHP3}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tanggal & Petugas (PHP 3)</th>
+                                        <td>{recordData.tanggalPHP3} (Diterima oleh: {recordData.petugasPHP3})</td>
+                                    </tr>
+                                </>
+                            )}
+
+                            {/* PHP 2 (Hasil dari Revisi 3) */}
+                            {recordData.nomorPHP2 && (
+                                <>
+                                    <tr>
+                                        <th>Nomor PHP 4 (Revisi 5)</th>
+                                        <td><span>{recordData.nomorPHP4}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tanggal & Petugas (PHP 4)</th>
+                                        <td>{recordData.tanggalPHP4} (Diterima oleh: {recordData.petugasPHP4})</td>
                                     </tr>
                                 </>
                             )}

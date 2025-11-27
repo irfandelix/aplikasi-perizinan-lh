@@ -102,6 +102,7 @@ function FormPengembalian() {
             <style>{tableStyles}</style>
             <fieldset>
                 <legend>Pilih Dokumen</legend>
+                <p>Gunakan form ini untuk mencatat tanggal saat dokumen dikembalikan dari Kantor LH (setelah diperiksa) ke pemrakarsa/konsultan untuk direvisi.</p>                
                 <label htmlFor="nomorChecklistPengembalian">Masukkan Nomor Registrasi Dokumen (Nomor Checklist):</label>
                 <input
                     id="nomorChecklistPengembalian"
@@ -119,7 +120,6 @@ function FormPengembalian() {
                 <form onSubmit={handleApiSubmit}>
                     <fieldset>
                         <legend>Pengembalian Dokumen ke Pemrakarsa/Konsultan</legend>
-                        <p>Gunakan form ini untuk mencatat tanggal saat dokumen dikembalikan dari Kantor LH (setelah diperiksa) ke pemrakarsa/konsultan untuk direvisi.</p>
                         <div>
                             <label htmlFor="tanggalPengembalian">Tanggal Pengembalian Dokumen</label>
                             <input 

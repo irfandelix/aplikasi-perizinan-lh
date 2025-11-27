@@ -277,33 +277,44 @@ app.post('/api/submit/:tahap', async (req, res) => {
             const nomorChecklist = `600.4/${formatToThreeDigits(noUrut)}.${tglMasukParts.month}/17/REG.${jenisDokumenSingkat}/${tglMasukParts.year}`;
             
             const newRecord = {
-                ...data,
-                noUrut,
-                nomorChecklist,
-                createdAt: new Date(),
-                nomorUjiBerkas: "", tanggalUjiBerkas: "",
-                nomorBAVerlap: "", tanggalVerlap: "",
-                nomorBAPemeriksaan: "", tanggalPemeriksaan: "",
-                nomorRevisi1: "", tanggalRevisi1: "",
-                nomorRevisi2: "", tanggalRevisi2: "",
-                nomorRevisi3: "", tanggalRevisi3: "",
-                nomorRevisi4: "", tanggalRevisi4: "",
-                nomorRevisi5: "", tanggalRevisi5: "",
-                nomorPHP: "", tanggalPHP: "", petugasPenerimaPerbaikan: "", // <-- PERUBAHAN 1: Tambahkan field ini
-                nomorIzinTerbit: "", jenisPerizinan: "", nomorRisalah: "", tanggalRisalah: "",
-                checklistArsip: "", tanggalPengembalian: "",
-                // --- FIELD BARU UNTUK MENYIMPAN LINK FILE ---
-                fileTahapB: "", // BA HUA
-                fileTahapC: "", // BA Verlap
-                fileTahapD: "", // BA Pemeriksaan
-                fileTahapE1: "", // Revisi 1
-                fileTahapE2: "",
-                fileTahapE3: "",
-                fileTahapE4: "",
-                fileTahapE5: "",
-                fileTahapG: "", // RPD
-                filePKPLH: "" // Izin Terbit
-            };
+            ...data,
+            noUrut,
+            nomorChecklist,
+            createdAt: new Date(),
+            nomorUjiBerkas: "", tanggalUjiBerkas: "",
+            nomorBAVerlap: "", tanggalVerlap: "",
+            nomorBAPemeriksaan: "", tanggalPemeriksaan: "",
+            
+            // --- REVISI (TAHAP E) ---
+            nomorRevisi1: "", tanggalRevisi1: "",
+            nomorRevisi2: "", tanggalRevisi2: "",
+            nomorRevisi3: "", tanggalRevisi3: "",
+            nomorRevisi4: "", tanggalRevisi4: "",
+            nomorRevisi5: "", tanggalRevisi5: "",
+
+            // --- PENERIMAAN HASIL PERBAIKAN (TAHAP F - BARU) ---
+            // Ganti baris lama dengan 5 blok ini:
+            nomorPHP1: "", tanggalPHP1: "", petugasPHP1: "",
+            nomorPHP2: "", tanggalPHP2: "", petugasPHP2: "",
+            nomorPHP3: "", tanggalPHP3: "", petugasPHP3: "",
+            nomorPHP4: "", tanggalPHP4: "", petugasPHP4: "",
+            nomorPHP5: "", tanggalPHP5: "", petugasPHP5: "",
+
+            nomorIzinTerbit: "", jenisPerizinan: "", nomorRisalah: "", tanggalRisalah: "",
+            checklistArsip: "", tanggalPengembalian: "",
+            
+            // --- FILE LINKS ---
+            fileTahapB: "", 
+            fileTahapC: "", 
+            fileTahapD: "", 
+            fileTahapE1: "", 
+            fileTahapE2: "",
+            fileTahapE3: "",
+            fileTahapE4: "",
+            fileTahapE5: "",
+            fileTahapG: "", 
+            filePKPLH: "" 
+        };
             
             const result = await db.collection(COLLECTION_NAME).insertOne(newRecord);
             if (!result.insertedId) throw new Error("MongoDB gagal menyisipkan dokumen.");
@@ -399,16 +410,30 @@ app.post('/api/submit/:tahap', async (req, res) => {
             updateQuery[targetFields.tgl] = tanggalRevisi;
         }
         else if (tahap === 'f') {
-            // --- PERUBAHAN 2: Ambil 'petugasPenerimaPerbaikan' dari body ---
-            const { tanggalPenyerahanPerbaikan, petugasPenerimaPerbaikan } = req.body;
-            const tglParts = getDateParts(tanggalPenyerahanPerbaikan);
-            generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/17/PHP.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
+            // 1. Ambil nomorRevisi juga dari body (untuk tahu ini PHP ke berapa)
+            const { tanggalPenyerahanPerbaikan, petugasPenerimaPerbaikan, nomorRevisi } = req.body;
             
-            // --- PERUBAHAN 3: Tambahkan field baru ke query update ---
+            // 2. Mapping untuk menentukan kolom database mana yang diisi
+            const phpMap = { 
+                '1': { no: 'nomorPHP1', tgl: 'tanggalPHP1', petugas: 'petugasPHP1' }, 
+                '2': { no: 'nomorPHP2', tgl: 'tanggalPHP2', petugas: 'petugasPHP2' }, 
+                '3': { no: 'nomorPHP3', tgl: 'tanggalPHP3', petugas: 'petugasPHP3' }, 
+                '4': { no: 'nomorPHP4', tgl: 'tanggalPHP4', petugas: 'petugasPHP4' }, 
+                '5': { no: 'nomorPHP5', tgl: 'tanggalPHP5', petugas: 'petugasPHP5' } 
+            };
+
+            const targetFields = phpMap[nomorRevisi];
+            if (!targetFields) return res.status(400).json({ success: false, message: 'Nomor Tahap PHP (1-5) tidak valid.' });
+
+            // 3. Generate Nomor dengan format .../PHP.[Nomor]/...
+            const tglParts = getDateParts(tanggalPenyerahanPerbaikan);
+            generatedNomor = `600.4/${formatToThreeDigits(noUrut)}.${tglParts.month}/17/PHP.${nomorRevisi}.${getStandardAbbreviation(existingData.jenisDokumen)}/${tglParts.year}`;
+            
+            // 4. Update Query dinamis sesuai targetFields
             updateQuery = { 
-                nomorPHP: generatedNomor, 
-                tanggalPHP: tanggalPenyerahanPerbaikan, 
-                petugasPenerimaPerbaikan: petugasPenerimaPerbaikan // Simpan nama petugas
+                [targetFields.no]: generatedNomor, 
+                [targetFields.tgl]: tanggalPenyerahanPerbaikan, 
+                [targetFields.petugas]: petugasPenerimaPerbaikan 
             };
         }
         else if (tahap === 'g') {
