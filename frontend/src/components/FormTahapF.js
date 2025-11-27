@@ -120,6 +120,7 @@ const [tahapFData, setTahapFData] = useState({
             <style>{tableStyles}</style>
             <fieldset>
                 <legend>Pilih Dokumen</legend>
+                <p>Gunakan form ini untuk mencatat dan memberikan nomor PHP saat Dokumen dikembalikan untuk diperiksa oleh Dinas LH Sragen</p>
                 <label htmlFor="nomorChecklistF">Masukkan Nomor Registrasi Dokumen (Nomor Checklist):</label>
                 <input
                     id="nomorChecklistF"
